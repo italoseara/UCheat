@@ -42,7 +42,7 @@ int main()
         auto player_id = steam_player->info();
         auto steam_name = player_id->steam_name()->to_string();
         auto public_name = player_id->public_name()->to_string();
-        auto steam_id = player_id->steam_id()->id();
+        auto steam_id = player_id->steam_id();
 
         auto player = steam_player->player();
         auto player_life = player->life();
