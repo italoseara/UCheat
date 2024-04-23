@@ -33,16 +33,13 @@
 	}
 
 #define GAMEOBJECT_DEF()                                                                                    \
-	Unity::GameObject *gameObject()                                                                         \
+	Unity::GameObject *game_object()                                                                         \
 	{                                                                                                       \
 		return (Unity::GameObject*)Memory::read<uintptr_t>(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x30); \
 	}
 
 #define GET_OFFSET(class_name, field_name) \
 	class_name->find_field(field_name)->offset()
-
-#define FIND_CLASS(class_name) \
-	Mono::find_class("Assembly-CSharp", class_name)
 
 namespace Classes
 {
@@ -51,6 +48,7 @@ namespace Classes
 
 	mono_class_t* SteamChannel;
 	mono_class_t* SteamPlayer;
+	mono_class_t* SteamPlayerID;
 
 	mono_class_t* PlayerEquipment;
 	mono_class_t* Asset;
@@ -60,46 +58,56 @@ namespace Classes
 
 	void init()
 	{
-		Provider        = FIND_CLASS("SDG.Unturned.Provider");
+		Provider        = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Provider");
 
-		Player          = FIND_CLASS("SDG.Unturned.Player");
-		SteamChannel    = FIND_CLASS("SDG.Unturned.SteamChannel");
-		SteamPlayer     = FIND_CLASS("SDG.Unturned.SteamPlayer");
+		Player          = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Player");
+		SteamChannel    = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamChannel");
+		SteamPlayer     = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
+		SteamPlayerID   = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
 
-		PlayerEquipment = FIND_CLASS("SDG.Unturned.PlayerEquipment");
-		Asset           = FIND_CLASS("SDG.Unturned.Asset");
-		ItemGunAsset    = FIND_CLASS("SDG.Unturned.ItemGunAsset");
-		Useable         = FIND_CLASS("SDG.Unturned.Useable");
-		UseableGun      = FIND_CLASS("SDG.Unturned.UseableGun");
+		PlayerEquipment = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerEquipment");
+		Asset           = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Asset");
+		ItemGunAsset    = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
+		Useable         = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Useable");
+		UseableGun      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.UseableGun");
 	}
 }
 
 namespace Offsets
 {
-	namespace Player
-	{
-		uintptr_t player;
-		uintptr_t channel;
-		uintptr_t equipment;
-	}
-
 	namespace Provider
 	{
-		uintptr_t is_connected;
+		uintptr_t connected;
 		uintptr_t is_loading_ugc;
 		uintptr_t clients;
-	}
-
-	namespace SteamPlayer
-	{
-		uintptr_t is_admin;
-		uintptr_t joined;
-		uintptr_t player;
 	}
 
 	namespace SteamChannel
 	{
 		uintptr_t owner;
+	}
+
+	namespace SteamPlayer
+	{
+		uintptr_t admin;
+		uintptr_t joined;
+		uintptr_t player;
+		uintptr_t info;
+	}
+
+	namespace SteamPlayerID
+	{
+		uintptr_t private_name;
+		uintptr_t steam_name;
+		uintptr_t public_name;
+		uintptr_t steam_id;
+	}
+
+	namespace Player
+	{
+		uintptr_t player;
+		uintptr_t channel;
+		uintptr_t equipment;
 	}
 
 	namespace PlayerEquipment
@@ -130,20 +138,25 @@ namespace Offsets
 	}
 
 	void init()
-	{
-		Player::player    = GET_OFFSET(Classes::Player, "_player");
-		Player::channel   = GET_OFFSET(Classes::Player, "_channel");
-		Player::equipment = GET_OFFSET(Classes::Player, "_equipment");
-			
-		Provider::is_connected   = GET_OFFSET(Classes::Provider, "_isConnected");
+	{	
+		Provider::connected      = GET_OFFSET(Classes::Provider, "_isConnected");
 		Provider::is_loading_ugc = GET_OFFSET(Classes::Provider, "isLoadingUGC");
 		Provider::clients        = GET_OFFSET(Classes::Provider, "_clients");
 
-		SteamPlayer::is_admin = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
-		SteamPlayer::joined   = GET_OFFSET(Classes::SteamPlayer, "_joined");
-		SteamPlayer::player   = GET_OFFSET(Classes::SteamPlayer, "_player");
-
 		SteamChannel::owner = GET_OFFSET(Classes::SteamChannel, "owner");
+
+		SteamPlayer::admin     = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
+		SteamPlayer::joined    = GET_OFFSET(Classes::SteamPlayer, "_joined");
+		SteamPlayer::player    = GET_OFFSET(Classes::SteamPlayer, "_player");
+		SteamPlayer::info      = GET_OFFSET(Classes::SteamPlayer, "_playerID");
+
+		SteamPlayerID::steam_name   = GET_OFFSET(Classes::SteamPlayerID, "_playerName");
+		SteamPlayerID::public_name  = GET_OFFSET(Classes::SteamPlayerID, "_characterName");
+		SteamPlayerID::private_name = GET_OFFSET(Classes::SteamPlayerID, "_nickName");
+
+		Player::player    = GET_OFFSET(Classes::Player, "_player");
+		Player::channel   = GET_OFFSET(Classes::Player, "_channel");
+		Player::equipment = GET_OFFSET(Classes::Player, "_equipment");
 
 		PlayerEquipment::asset   = GET_OFFSET(Classes::PlayerEquipment, "_asset");
 		PlayerEquipment::useable = GET_OFFSET(Classes::PlayerEquipment, "_useable");

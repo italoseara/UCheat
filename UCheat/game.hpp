@@ -8,6 +8,7 @@ namespace SDG
 {
 	class SteamPlayer;
 	class SteamChannel;
+	class SteamPlayerID;
 	class Player;
 	class Provider;
 	class PlayerEquipment;
@@ -15,18 +16,36 @@ namespace SDG
 	class ItemGunAsset;
 	class Useable;
 
-	class SteamPlayer
+	class Provider
 	{
+	private:
+		INSTANCE_DEF(Classes::Provider);
 	public:
-		FIELD_DEF(Player*, player, Offsets::SteamPlayer::player);
-		FIELD_DEF(float, joined, Offsets::SteamPlayer::joined)
-		FIELD_DEF(bool, admin, Offsets::SteamPlayer::is_admin);
+		STATIC_FIELD_DEF(bool, connected, Offsets::Provider::connected);
+		STATIC_FIELD_DEF(Unity::List<SteamPlayer*>*, clients, Offsets::Provider::clients);
 	};
 
 	class SteamChannel
 	{
 	public:
 		FIELD_DEF(SteamPlayer*, owner, Offsets::SteamChannel::owner);
+	};
+
+	class SteamPlayer
+	{
+	public:
+		FIELD_DEF(Player*, player, Offsets::SteamPlayer::player);
+		FIELD_DEF(float, joined, Offsets::SteamPlayer::joined)
+		FIELD_DEF(bool, admin, Offsets::SteamPlayer::admin);
+		FIELD_DEF(SteamPlayerID*, info, Offsets::SteamPlayer::info);
+	};
+
+	class SteamPlayerID
+	{
+	public:
+		FIELD_DEF(Unity::String*, steam_name, Offsets::SteamPlayerID::steam_name);
+		FIELD_DEF(Unity::String*, public_name, Offsets::SteamPlayerID::public_name);
+		FIELD_DEF(Unity::String*, private_name, Offsets::SteamPlayerID::private_name);
 	};
 
 	class Player
@@ -38,15 +57,6 @@ namespace SDG
 		FIELD_DEF(PlayerEquipment*, equipment, Offsets::Player::equipment);
 		FIELD_DEF(SteamChannel*, channel, Offsets::Player::channel);
 		GAMEOBJECT_DEF();
-	};
-
-	class Provider
-	{
-	private:
-		INSTANCE_DEF(Classes::Provider);
-	public:
-		STATIC_FIELD_DEF(bool, is_connected, Offsets::Provider::is_connected);
-		STATIC_FIELD_DEF(Unity::Array<SteamPlayer*>*, clients, Offsets::Provider::clients);
 	};
 
 	class PlayerEquipment

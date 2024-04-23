@@ -1,6 +1,7 @@
 #ifndef UNITY_HPP
 #define UNITY_HPP
 
+#include <vector>
 #include "unturned.hpp"
 
 namespace Unity
@@ -18,7 +19,7 @@ namespace Unity
 			return Memory::read<uint32_t>(THISPTR + 0x10);
 		}
 
-		string str()
+		string to_string()
 		{
 			uintptr_t address = THISPTR + 0x14;
 			uint32_t size = length() * sizeof(wchar_t);
@@ -132,7 +133,7 @@ namespace Unity
 	};
 
 	template <typename T>
-	class Array
+	class List
 	{
 	public:
 		uint32_t count()
@@ -145,7 +146,13 @@ namespace Unity
 			return Memory::read<T>(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x20 + (index * sizeof(T)));
 		}
 
-		// youd prob want a method to just read the whole array into a vector here
+		vector<T> to_vector()
+		{
+			vector<T> vec;
+			for (uint32_t i = 0; i < count(); i++)
+				vec.push_back(get(i));
+			return vec;
+		}
 	};
 
 	class Transform
