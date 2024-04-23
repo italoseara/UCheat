@@ -47,6 +47,7 @@ namespace Classes
 	mono_class_t* SteamChannel;
 	mono_class_t* SteamPlayer;
 	mono_class_t* SteamPlayerID;
+	mono_class_t* CSteamID;
 
 	mono_class_t* Player;
 	mono_class_t* PlayerLife;
@@ -59,10 +60,11 @@ namespace Classes
 
 	void init()
 	{
-		Provider        = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Provider");
-		SteamChannel = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamChannel");
-		SteamPlayer = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
+		Provider      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Provider");
+		SteamChannel  = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamChannel");
+		SteamPlayer   = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
 		SteamPlayerID = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
+		CSteamID      = Mono::find_class("com.rlabrecque.steamworks.net", "Steamworks.CSteamID");
 
 		Player          = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Player");
 		PlayerLife      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerLife");
@@ -103,6 +105,11 @@ namespace Offsets
 		uintptr_t steam_name;
 		uintptr_t public_name;
 		uintptr_t steam_id;
+	}
+
+	namespace CSteamID
+	{
+		uintptr_t id;
 	}
 
 	namespace Player
@@ -155,13 +162,13 @@ namespace Offsets
 
 	void init()
 	{	
-		Provider::is_connected      = GET_OFFSET(Classes::Provider, "_isConnected");
+		Provider::is_connected   = GET_OFFSET(Classes::Provider, "_isConnected");
 		Provider::is_loading_ugc = GET_OFFSET(Classes::Provider, "isLoadingUGC");
 		Provider::clients        = GET_OFFSET(Classes::Provider, "_clients");
 
 		SteamChannel::owner = GET_OFFSET(Classes::SteamChannel, "owner");
 
-		SteamPlayer::is_admin     = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
+		SteamPlayer::is_admin  = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
 		SteamPlayer::joined    = GET_OFFSET(Classes::SteamPlayer, "_joined");
 		SteamPlayer::player    = GET_OFFSET(Classes::SteamPlayer, "_player");
 		SteamPlayer::info      = GET_OFFSET(Classes::SteamPlayer, "_playerID");
@@ -169,6 +176,9 @@ namespace Offsets
 		SteamPlayerID::steam_name   = GET_OFFSET(Classes::SteamPlayerID, "_playerName");
 		SteamPlayerID::public_name  = GET_OFFSET(Classes::SteamPlayerID, "_characterName");
 		SteamPlayerID::private_name = GET_OFFSET(Classes::SteamPlayerID, "_nickName");
+		SteamPlayerID::steam_id     = GET_OFFSET(Classes::SteamPlayerID, "_steamID");
+
+		CSteamID::id = GET_OFFSET(Classes::CSteamID, "m_SteamID");
 
 		Player::player    = GET_OFFSET(Classes::Player, "_player");
 		Player::channel   = GET_OFFSET(Classes::Player, "_channel");

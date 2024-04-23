@@ -42,12 +42,13 @@ int main()
         auto player_id = steam_player->info();
         auto steam_name = player_id->steam_name()->to_string();
         auto public_name = player_id->public_name()->to_string();
+        auto steam_id = player_id->steam_id()->id();
 
         auto player = steam_player->player();
         auto player_life = player->life();
         auto player_pos = player->game_object()->transform()->local_position();
 
-        log("Player %d: %s (%s) - %s", i, public_name.c_str(), steam_name.c_str(), player_pos.to_string().c_str());
+        log("Player %d: %s (%llu) - %s", i, steam_name.c_str(), steam_id, player_pos.to_string().c_str());
         log("Health: %d, Stamina: %d, Food: %d, Water: %d", player_life->health(), player_life->stamina(), player_life->food(), player_life->water());
         printf("\n");
     }

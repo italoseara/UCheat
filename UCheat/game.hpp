@@ -6,16 +6,18 @@
 
 namespace SDG
 {
-	class SteamPlayer;
+	class Provider;
 	class SteamChannel;
+	class SteamPlayer;
 	class SteamPlayerID;
+	class CSteamID;
 	class Player;
 	class PlayerLife;
-	class Provider;
 	class PlayerEquipment;
 	class Asset;
 	class ItemGunAsset;
 	class Useable;
+	class UseableGun;
 
 	class Provider
 	{
@@ -47,6 +49,13 @@ namespace SDG
 		FIELD_DEF(Unity::String*, steam_name, Offsets::SteamPlayerID::steam_name);
 		FIELD_DEF(Unity::String*, public_name, Offsets::SteamPlayerID::public_name);
 		FIELD_DEF(Unity::String*, private_name, Offsets::SteamPlayerID::private_name);
+		FIELD_DEF(CSteamID*, steam_id, Offsets::SteamPlayerID::steam_id);
+	};
+
+	class CSteamID
+	{
+	public:
+		FIELD_DEF(uint64_t, id, Offsets::CSteamID::id);
 	};
 
 	class Player
