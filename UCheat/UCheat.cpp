@@ -12,7 +12,7 @@ int main()
     Classes::init();
     Offsets::init();
 
-    if (!SDG::Provider::connected())
+    if (!SDG::Provider::is_connected())
     {
         log("It seems like you're not in a server yet, run again when you are");
         system("pause");
@@ -44,16 +44,18 @@ int main()
         auto public_name = player_id->public_name()->to_string();
 
         auto player = steam_player->player();
+        auto player_life = player->life();
         auto player_pos = player->game_object()->transform()->local_position();
 
-        log("Player %d: %s (%s) - %f %f %f", i, public_name.c_str(), steam_name.c_str(), player_pos.x, player_pos.y, player_pos.z);
+        log("Player %d: %s (%s) - %s", i, public_name.c_str(), steam_name.c_str(), player_pos.to_string().c_str());
+        log("Health: %d, Stamina: %d, Food: %d, Water: %d", player_life->health(), player_life->stamina(), player_life->food(), player_life->water());
+        printf("\n");
     }
-    printf("\n");
 
     // admin stuff
     auto owner = local_player->channel()->owner();
-    owner->set_admin(1);
-    if (owner->admin())
+    owner->set_is_admin(1);
+    if (owner->is_admin())
         log("Use keys Shift + F1 & F7 for freecam & esp");
 
     // gun mods
@@ -66,6 +68,7 @@ int main()
         log("Current Weapon: %s (%i)", gun->name()->to_string().c_str(), gun->id());
         log("Current Ammo: %d", useable->ammo());
         useable->set_ammo(100);
+        log("Set current weapon ammo to 100");
         gun->set_recoil_max_x(0);
         gun->set_recoil_max_y(0);
         gun->set_recoil_min_x(0);

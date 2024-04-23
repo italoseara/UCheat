@@ -10,6 +10,7 @@ namespace SDG
 	class SteamChannel;
 	class SteamPlayerID;
 	class Player;
+	class PlayerLife;
 	class Provider;
 	class PlayerEquipment;
 	class Asset;
@@ -21,7 +22,7 @@ namespace SDG
 	private:
 		INSTANCE_DEF(Classes::Provider);
 	public:
-		STATIC_FIELD_DEF(bool, connected, Offsets::Provider::connected);
+		STATIC_FIELD_DEF(bool, is_connected, Offsets::Provider::is_connected);
 		STATIC_FIELD_DEF(Unity::List<SteamPlayer*>*, clients, Offsets::Provider::clients);
 	};
 
@@ -36,7 +37,7 @@ namespace SDG
 	public:
 		FIELD_DEF(Player*, player, Offsets::SteamPlayer::player);
 		FIELD_DEF(float, joined, Offsets::SteamPlayer::joined)
-		FIELD_DEF(bool, admin, Offsets::SteamPlayer::admin);
+		FIELD_DEF(bool, is_admin, Offsets::SteamPlayer::is_admin);
 		FIELD_DEF(SteamPlayerID*, info, Offsets::SteamPlayer::info);
 	};
 
@@ -56,7 +57,22 @@ namespace SDG
 		STATIC_FIELD_DEF(Player*, player, Offsets::Player::player);
 		FIELD_DEF(PlayerEquipment*, equipment, Offsets::Player::equipment);
 		FIELD_DEF(SteamChannel*, channel, Offsets::Player::channel);
+		FIELD_DEF(PlayerLife*, life, Offsets::Player::life);
 		GAMEOBJECT_DEF();
+	};
+
+	class PlayerLife
+	{
+	public:
+		FIELD_DEF(bool, is_dead, Offsets::PlayerLife::is_dead);
+		FIELD_DEF(bool, is_bleeding, Offsets::PlayerLife::is_bleeding);
+		FIELD_DEF(bool, is_broken, Offsets::PlayerLife::is_broken);
+		FIELD_DEF(byte, health, Offsets::PlayerLife::health);
+		FIELD_DEF(byte, food, Offsets::PlayerLife::food);
+		FIELD_DEF(byte, water, Offsets::PlayerLife::water);
+		FIELD_DEF(byte, virus, Offsets::PlayerLife::virus);
+		FIELD_DEF(byte, stamina, Offsets::PlayerLife::stamina);
+		FIELD_DEF(byte, oxygen, Offsets::PlayerLife::oxygen);
 	};
 
 	class PlayerEquipment

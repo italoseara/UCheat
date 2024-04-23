@@ -44,13 +44,14 @@
 namespace Classes
 {
 	mono_class_t* Provider;
-	mono_class_t* Player;
-
 	mono_class_t* SteamChannel;
 	mono_class_t* SteamPlayer;
 	mono_class_t* SteamPlayerID;
 
+	mono_class_t* Player;
+	mono_class_t* PlayerLife;
 	mono_class_t* PlayerEquipment;
+
 	mono_class_t* Asset;
 	mono_class_t* ItemGunAsset;
 	mono_class_t* Useable;
@@ -59,13 +60,14 @@ namespace Classes
 	void init()
 	{
 		Provider        = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Provider");
+		SteamChannel = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamChannel");
+		SteamPlayer = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
+		SteamPlayerID = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
 
 		Player          = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Player");
-		SteamChannel    = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamChannel");
-		SteamPlayer     = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
-		SteamPlayerID   = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
-
+		PlayerLife      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerLife");
 		PlayerEquipment = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerEquipment");
+
 		Asset           = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Asset");
 		ItemGunAsset    = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
 		Useable         = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Useable");
@@ -77,7 +79,7 @@ namespace Offsets
 {
 	namespace Provider
 	{
-		uintptr_t connected;
+		uintptr_t is_connected;
 		uintptr_t is_loading_ugc;
 		uintptr_t clients;
 	}
@@ -89,7 +91,7 @@ namespace Offsets
 
 	namespace SteamPlayer
 	{
-		uintptr_t admin;
+		uintptr_t is_admin;
 		uintptr_t joined;
 		uintptr_t player;
 		uintptr_t info;
@@ -108,6 +110,20 @@ namespace Offsets
 		uintptr_t player;
 		uintptr_t channel;
 		uintptr_t equipment;
+		uintptr_t life;
+	}
+
+	namespace PlayerLife
+	{
+		uintptr_t is_dead;
+		uintptr_t is_bleeding;
+		uintptr_t is_broken;
+		uintptr_t health;
+		uintptr_t food;
+		uintptr_t water;
+		uintptr_t virus;
+		uintptr_t stamina;
+		uintptr_t oxygen;
 	}
 
 	namespace PlayerEquipment
@@ -139,13 +155,13 @@ namespace Offsets
 
 	void init()
 	{	
-		Provider::connected      = GET_OFFSET(Classes::Provider, "_isConnected");
+		Provider::is_connected      = GET_OFFSET(Classes::Provider, "_isConnected");
 		Provider::is_loading_ugc = GET_OFFSET(Classes::Provider, "isLoadingUGC");
 		Provider::clients        = GET_OFFSET(Classes::Provider, "_clients");
 
 		SteamChannel::owner = GET_OFFSET(Classes::SteamChannel, "owner");
 
-		SteamPlayer::admin     = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
+		SteamPlayer::is_admin     = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
 		SteamPlayer::joined    = GET_OFFSET(Classes::SteamPlayer, "_joined");
 		SteamPlayer::player    = GET_OFFSET(Classes::SteamPlayer, "_player");
 		SteamPlayer::info      = GET_OFFSET(Classes::SteamPlayer, "_playerID");
@@ -157,6 +173,17 @@ namespace Offsets
 		Player::player    = GET_OFFSET(Classes::Player, "_player");
 		Player::channel   = GET_OFFSET(Classes::Player, "_channel");
 		Player::equipment = GET_OFFSET(Classes::Player, "_equipment");
+		Player::life      = GET_OFFSET(Classes::Player, "_life");
+
+		PlayerLife::is_dead     = GET_OFFSET(Classes::PlayerLife, "_isDead");
+		PlayerLife::is_bleeding = GET_OFFSET(Classes::PlayerLife, "_isBleeding");
+		PlayerLife::is_broken   = GET_OFFSET(Classes::PlayerLife, "_isBroken");
+		PlayerLife::health      = GET_OFFSET(Classes::PlayerLife, "_health");
+		PlayerLife::food        = GET_OFFSET(Classes::PlayerLife, "_food");
+		PlayerLife::water       = GET_OFFSET(Classes::PlayerLife, "_water");
+		PlayerLife::virus       = GET_OFFSET(Classes::PlayerLife, "_virus");
+		PlayerLife::stamina     = GET_OFFSET(Classes::PlayerLife, "_stamina");
+		PlayerLife::oxygen      = GET_OFFSET(Classes::PlayerLife, "_oxygen");
 
 		PlayerEquipment::asset   = GET_OFFSET(Classes::PlayerEquipment, "_asset");
 		PlayerEquipment::useable = GET_OFFSET(Classes::PlayerEquipment, "_useable");
