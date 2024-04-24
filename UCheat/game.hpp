@@ -10,9 +10,15 @@ namespace SDG
 	class SteamChannel;
 	class SteamPlayer;
 	class SteamPlayerID;
+
 	class Player;
 	class PlayerLife;
 	class PlayerEquipment;
+
+	class ZombieManager;
+	class ZombieRegion;
+	class Zombie;
+	
 	class Asset;
 	class ItemGunAsset;
 	class Useable;
@@ -82,6 +88,31 @@ namespace SDG
 	public:
 		FIELD_DEF(Asset*, asset, Offsets::PlayerEquipment::asset);
 		FIELD_DEF(Useable*, useable, Offsets::PlayerEquipment::useable);
+	};
+
+	class ZombieManager
+	{
+	private:
+		INSTANCE_DEF(Classes::ZombieManager);
+	public:
+		STATIC_FIELD_DEF(Unity::List<Zombie*>*, ticking_zombies, Offsets::ZombieManager::ticking_zombies);
+		STATIC_FIELD_DEF(Unity::Array<ZombieRegion*>*, regions, Offsets::ZombieManager::regions);
+	};
+
+	class ZombieRegion
+	{
+	public:
+		FIELD_DEF(Unity::List<Zombie*>*, zombies, Offsets::ZombieRegion::zombies);
+	};
+
+	class Zombie
+	{
+	public:
+		FIELD_DEF(uint16_t, id, Offsets::Zombie::id);
+		FIELD_DEF(uint16_t, health, Offsets::Zombie::health);
+		FIELD_DEF(uint16_t, max_health, Offsets::Zombie::max_health);
+		FIELD_DEF(bool, is_dead, Offsets::Zombie::is_dead);
+		GAMEOBJECT_DEF();
 	};
 
     class Asset

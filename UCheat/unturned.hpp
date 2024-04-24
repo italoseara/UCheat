@@ -52,6 +52,10 @@ namespace Classes
 	mono_class_t* PlayerLife;
 	mono_class_t* PlayerEquipment;
 
+	mono_class_t* ZombieManager;
+	mono_class_t* ZombieRegion;
+	mono_class_t* Zombie;
+
 	mono_class_t* Asset;
 	mono_class_t* ItemGunAsset;
 	mono_class_t* Useable;
@@ -67,6 +71,10 @@ namespace Classes
 		Player          = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Player");
 		PlayerLife      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerLife");
 		PlayerEquipment = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerEquipment");
+
+		ZombieManager = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ZombieManager");
+		ZombieRegion  = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ZombieRegion");
+		Zombie        = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Zombie");
 
 		Asset           = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Asset");
 		ItemGunAsset    = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
@@ -132,6 +140,25 @@ namespace Offsets
 		uintptr_t useable;
 	}
 
+	namespace ZombieManager
+	{
+		uintptr_t ticking_zombies;
+		uintptr_t regions;
+	}
+
+	namespace ZombieRegion
+	{
+		uintptr_t zombies;
+	}
+
+	namespace Zombie
+	{
+		uintptr_t id;
+		uintptr_t health;
+		uintptr_t max_health;
+		uintptr_t is_dead;
+	}
+
 	namespace Asset
 	{
 		uintptr_t id;
@@ -188,6 +215,16 @@ namespace Offsets
 
 		PlayerEquipment::asset   = GET_OFFSET(Classes::PlayerEquipment, "_asset");
 		PlayerEquipment::useable = GET_OFFSET(Classes::PlayerEquipment, "_useable");
+
+		ZombieManager::ticking_zombies = GET_OFFSET(Classes::ZombieManager, "_tickingZombies");
+		ZombieManager::regions         = GET_OFFSET(Classes::ZombieManager, "_regions");
+
+		ZombieRegion::zombies = GET_OFFSET(Classes::ZombieRegion, "_zombies");
+
+		Zombie::id         = GET_OFFSET(Classes::Zombie, "id");
+		Zombie::health     = GET_OFFSET(Classes::Zombie, "health");
+		Zombie::max_health = GET_OFFSET(Classes::Zombie, "maxHealth");
+		Zombie::is_dead    = GET_OFFSET(Classes::Zombie, "isDead");
 
 		Asset::id   = GET_OFFSET(Classes::Asset, "id");
 		Asset::name = GET_OFFSET(Classes::Asset, "name");

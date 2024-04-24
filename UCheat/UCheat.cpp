@@ -53,6 +53,25 @@ int main()
         printf("\n");
     }
 
+    // iterate zombies
+    auto player_pos = local_player->game_object()->transform()->local_position();
+    auto regions = SDG::ZombieManager::regions()->to_vector();
+    for (auto region : regions)
+	{
+		auto zombies = region->zombies()->to_vector();
+		for (auto zombie : zombies)
+		{
+            auto id = zombie->id();
+            auto is_alive = zombie->is_dead() ? "No" : "Yes";
+            auto health = zombie->health();
+            auto max_health = zombie->max_health();
+            auto pos = zombie->game_object()->transform()->local_position();
+            auto distance = player_pos.distance(pos);
+
+            log("Zombie %d - Distance: %.2fm - isAlive: %s - Health: %d/%d", id, distance, is_alive, health, max_health);
+		}
+	}
+
     // admin stuff
     auto owner = local_player->channel()->owner();
     owner->set_is_admin(1);

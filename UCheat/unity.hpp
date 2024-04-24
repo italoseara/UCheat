@@ -148,9 +148,39 @@ namespace Unity
 
 		vector<T> to_vector()
 		{
-			vector<T> vec;
-			for (uint32_t i = 0; i < count(); i++)
-				vec.push_back(get(i));
+			uint32_t len = count();
+			auto buffer = make_unique<T[]>(len);
+			LPVOID address = (LPVOID)(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x20);
+			ReadProcessMemory(Memory::proc_handle, address, buffer.get(), len * sizeof(T), NULL);
+
+			vector<T> vec(len);
+			memcpy(vec.data(), buffer.get(), len * sizeof(T));
+			return vec;
+		}
+	};
+
+	template <typename T>
+	class Array
+	{
+	public:
+		uint32_t length()
+		{
+			return Memory::read<uint32_t>(THISPTR + 0x18);
+		}
+
+		T get(uint32_t index)
+		{
+			return Memory::read<T>(THISPTR + 0x20 + (index * sizeof(T)));
+		}
+
+		vector<T> to_vector()
+		{
+			uint32_t len = length();
+			auto buffer = make_unique<T[]>(len);
+			ReadProcessMemory(Memory::proc_handle, (LPVOID)(THISPTR + 0x20), buffer.get(), len * sizeof(T), NULL);
+
+			vector<T> vec(len);
+			memcpy(vec.data(), buffer.get(), len * sizeof(T));
 			return vec;
 		}
 	};
