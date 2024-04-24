@@ -15,27 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="UCheat.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="memory.hpp">
+    <ClInclude Include="external\memory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="log.hpp">
+    <ClInclude Include="external\log.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mono.hpp">
+    <ClInclude Include="external\mono.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="unturned.hpp">
+    <ClInclude Include="external\unturned.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="unity.hpp">
+    <ClInclude Include="external\unity.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game.hpp">
+    <ClInclude Include="external\game.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

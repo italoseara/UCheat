@@ -46,29 +46,31 @@ int main()
 
         auto player = steam_player->player();
         auto player_life = player->life();
-        auto player_pos = player->game_object()->transform()->local_position();
+        auto player_pos = player->game_object()->transform().local_position();
 
-        log("Player %d: %s (%llu) - %s", i, steam_name.c_str(), steam_id, player_pos.to_string().c_str());
+        log("Player %d: %s (SteamID: %llu) - %f %f %f", i, steam_name.c_str(), steam_id, player_pos.x, player_pos.y, player_pos.z);
         log("Health: %d, Stamina: %d, Food: %d, Water: %d", player_life->health(), player_life->stamina(), player_life->food(), player_life->water());
         printf("\n");
     }
 
     // iterate zombies
-    auto player_pos = local_player->game_object()->transform()->local_position();
+    auto player_pos = local_player->game_object()->transform().local_position();
     auto regions = SDG::ZombieManager::regions()->to_vector();
+
     for (auto region : regions)
 	{
 		auto zombies = region->zombies()->to_vector();
 		for (auto zombie : zombies)
 		{
+            // zombie info
             auto id = zombie->id();
             auto is_alive = zombie->is_dead() ? "No" : "Yes";
             auto health = zombie->health();
             auto max_health = zombie->max_health();
-            auto pos = zombie->game_object()->transform()->local_position();
-            auto distance = player_pos.distance(pos);
+            auto pos = zombie->game_object()->transform().local_position();
 
-            log("Zombie %d - Distance: %.2fm - isAlive: %s - Health: %d/%d", id, distance, is_alive, health, max_health);
+            log("Zombie %d - isAlive: %s - Health: %d/%d - Pos: %f %f %f",
+                id, is_alive, health, max_health, pos.x, pos.y, pos.z);
 		}
 	}
 

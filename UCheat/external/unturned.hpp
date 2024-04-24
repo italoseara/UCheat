@@ -3,25 +3,37 @@
 
 #include "mono.hpp"
 
-#define FIELD_DEF(return_type, field_name, offset)                  \
+#define GETTER_DEF(return_type, field_name, offset)                 \
 	return_type field_name()                                        \
 	{                                                               \
 		return Memory::read<return_type>(THISPTR + offset);         \
-	}                                                               \
+	}   
+
+#define SETTER_DEF(return_type, field_name, offset)                 \
 	void set_##field_name(return_type value)                        \
 	{                                                               \
 		return Memory::write<return_type>(value, THISPTR + offset); \
 	}
 
-#define STATIC_FIELD_DEF(return_type, field_name, offset)              \
+#define GETTER_SETTER_DEF(return_type, field_name, offset) \
+	GETTER_DEF(return_type, field_name, offset)            \
+	SETTER_DEF(return_type, field_name, offset)
+
+#define STATIC_GETTER_DEF(return_type, field_name, offset)             \
 	static return_type field_name()                                    \
 	{                                                                  \
 		return Memory::read<return_type>(instance() + offset);         \
-	}                                                                  \
+	}
+
+#define STATIC_SETTER_DEF(return_type, field_name, offset)             \
 	static void set_##field_name(return_type value)                    \
 	{                                                                  \
 		return Memory::write<return_type>(value, instance() + offset); \
 	}
+
+#define STATIC_GETTER_SETTER_DEF(return_type, field_name, offset) \
+	STATIC_GETTER_DEF(return_type, field_name, offset)            \
+	STATIC_SETTER_DEF(return_type, field_name, offset)
 
 #define INSTANCE_DEF(class_name)                                                             \
 	static inline uintptr_t instance()                                                       \
@@ -157,6 +169,7 @@ namespace Offsets
 		uintptr_t health;
 		uintptr_t max_health;
 		uintptr_t is_dead;
+		uintptr_t eyes;
 	}
 
 	namespace Asset
@@ -225,6 +238,7 @@ namespace Offsets
 		Zombie::health     = GET_OFFSET(Classes::Zombie, "health");
 		Zombie::max_health = GET_OFFSET(Classes::Zombie, "maxHealth");
 		Zombie::is_dead    = GET_OFFSET(Classes::Zombie, "isDead");
+		Zombie::eyes       = GET_OFFSET(Classes::Zombie, "eyes");
 
 		Asset::id   = GET_OFFSET(Classes::Asset, "id");
 		Asset::name = GET_OFFSET(Classes::Asset, "name");
