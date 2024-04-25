@@ -32,57 +32,57 @@ inline unsigned short utf8_to_utf16(const char* val)
 	return *reinterpret_cast<unsigned short*>(&dest[0]);
 }
 
-inline string read_widechar(const uintptr_t address, const size_t size)
+inline string readWidechar(const uintptr_t address, const size_t size)
 {
 	const auto buffer = make_unique<char[]>(size);
-	ReadProcessMemory(Memory::proc_handle, (LPVOID)address, buffer.get(), size, NULL);
+	ReadProcessMemory(Memory::hProc, (LPVOID)address, buffer.get(), size, NULL);
 	return string(buffer.get());
 }
 
-struct glist_t
+struct GList
 {
 	OFFSET(data, uintptr_t, 0x0);
 	OFFSET(next, uintptr_t, 0x8);
 };
 
-struct mono_root_domain_t
+struct MonoRootDomain
 {
-	OFFSET(domain_assemblies, glist_t*, 0xA0);
-	OFFSET(domain_id, int, 0x94);
-	OFFSET(jitted_function_table, uintptr_t, 0x120);
+	OFFSET(domainAssemblies, GList*, 0xA0);
+	OFFSET(domainId, int, 0x94);
+	OFFSET(jittedFunctionTable, uintptr_t, 0x120);
 };
 
-struct mono_table_info_t
+struct MonoTableInfo
 {
-	int get_rows()
+	int getRows()
 	{
 		return Memory::read<int>(THISPTR + 0x8) & 0xFFFFFF;
 	}
 };
 
-struct mono_method_t
+struct MonoMethod
 {
 	string name()
 	{
-		auto name = read_widechar(Memory::read<uintptr_t>(THISPTR + 0x18), 128);
+		auto name = readWidechar(Memory::read<uintptr_t>(THISPTR + 0x18), 128);
 		if (static_cast<uint8_t>(name[0]) == 0xEE)
 		{
-			char name_buff[32];
-			sprintf_s(name_buff, 32, "\\u%04X", utf8_to_utf16(const_cast<char *>(name.c_str())));
-			name = name_buff;
+			char nameBuffer[32];
+			sprintf_s(nameBuffer, 32, "\\u%04X", utf8_to_utf16(const_cast<char *>(name.c_str())));
+			name = nameBuffer;
 		}
 
 		return name;
 	}
 };
 
-struct mono_class_field_t
+struct MonoClassField
 {
 	OFFSET(offset, int, 0x18);
 
 	string name()
 	{
-		auto name = read_widechar(Memory::read<uintptr_t>(THISPTR + 0x8), 128);
+		auto name = readWidechar(Memory::read<uintptr_t>(THISPTR + 0x8), 128);
 		if (static_cast<uint8_t>(name[0]) == 0xEE)
 		{
 			char name_buff[32];
@@ -94,14 +94,14 @@ struct mono_class_field_t
 	}
 };
 
-struct mono_class_runtime_info_t
+struct MonoClassRuntimeInfo
 {
-	OFFSET(max_domain, int, 0x0);
+	OFFSET(maxDomain, int, 0x0);
 };
 
-struct mono_vtable_t
+struct MonoVTable
 {
-	uintptr_t get_static_field_data()
+	uintptr_t getStaticFieldData()
 	{
 		if (((Memory::read<uintptr_t>(THISPTR + 48)) & 4) != 0)
 			return Memory::read<uintptr_t>(THISPTR + 0x48 + 8 * Memory::read<int>(Memory::read<uintptr_t>(THISPTR + 0x0) + 0x5c));
@@ -110,38 +110,38 @@ struct mono_vtable_t
 	}
 };
 
-struct mono_class_t
+struct MonoClass
 {
-	OFFSET(num_fields, int, 0x100);
-	OFFSET(runtime_info, mono_class_runtime_info_t*, 0xD0);
+	OFFSET(numFields, int, 0x100);
+	OFFSET(runtimeInfo, MonoClassRuntimeInfo*, 0xD0);
 
-	string name()
+	string getName()
 	{
-		auto name = read_widechar(Memory::read<uintptr_t>(THISPTR + 0x48), 128);
+		auto name = readWidechar(Memory::read<uintptr_t>(THISPTR + 0x48), 128);
 		if (static_cast<uint8_t>(name[0]) == 0xEE)
 		{
-			char name_buff[32];
-			sprintf_s(name_buff, 32, "\\u%04X", utf8_to_utf16(const_cast<char*>(name.c_str())));
-			name = name_buff;
+			char nameBuffer[32];
+			sprintf_s(nameBuffer, 32, "\\u%04X", utf8_to_utf16(const_cast<char*>(name.c_str())));
+			name = nameBuffer;
 		}
 
 		return name;
 	}
 
-	string namespace_name()
+	string getNamespace()
 	{
-		auto name = read_widechar(Memory::read<uintptr_t>(THISPTR + 0x50), 128);
+		auto name = readWidechar(Memory::read<uintptr_t>(THISPTR + 0x50), 128);
 		if (static_cast<uint8_t>(name[0]) == 0xEE)
 		{
-			char name_buff[32];
-			sprintf_s(name_buff, 32, ("\\u%04X"), utf8_to_utf16(const_cast<char*>(name.c_str())));
-			name = name_buff;
+			char nameBuffer[32];
+			sprintf_s(nameBuffer, 32, ("\\u%04X"), utf8_to_utf16(const_cast<char*>(name.c_str())));
+			name = nameBuffer;
 		}
 
 		return name;
 	}
 
-	int get_num_methods()
+	int getNumMethods()
 	{
 		const auto v2 = (Memory::read<int>(THISPTR + 0x2a) & 7) - 1;
 		switch (v2)
@@ -164,54 +164,54 @@ struct mono_class_t
 		return 0;
 	}
 
-	mono_method_t* get_method(const int i)
+	MonoMethod* getMethod(const int i)
 	{
-		return reinterpret_cast<mono_method_t*>(Memory::read<uintptr_t>(Memory::read<uintptr_t>(THISPTR + 0xA0) + 0x8 * i));
+		return reinterpret_cast<MonoMethod*>(Memory::read<uintptr_t>(Memory::read<uintptr_t>(THISPTR + 0xA0) + 0x8 * i));
 	}
 
-	mono_class_field_t* get_field(const int i)
+	MonoClassField* getField(const int i)
 	{
-		return reinterpret_cast<mono_class_field_t*>(Memory::read<uintptr_t>(THISPTR + 0x98) + 0x20 * i);
+		return reinterpret_cast<MonoClassField*>(Memory::read<uintptr_t>(THISPTR + 0x98) + 0x20 * i);
 	}
 
-	mono_vtable_t* get_vtable(mono_root_domain_t* domain)
+	MonoVTable* getVTable(MonoRootDomain* domain)
 	{
-		const auto runtime_info = this->runtime_info();
-		if (!runtime_info)
+		const auto runtimeInfo = this->runtimeInfo();
+		if (!runtimeInfo)
 			return nullptr;
 
-		const auto domain_id = domain->domain_id();
-		if (runtime_info->max_domain() < domain_id)
+		const auto domainId = domain->domainId();
+		if (runtimeInfo->maxDomain() < domainId)
 			return nullptr;
 
-		return reinterpret_cast<mono_vtable_t*>(Memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(runtime_info) + 8 * domain_id + 8));
+		return reinterpret_cast<MonoVTable*>(Memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(runtimeInfo) + 8 * domainId + 8));
 	}
 
-	mono_method_t* find_method(const char* method_name)
+	MonoMethod* findMethod(const char* methodName)
 	{
-		auto mono_ptr = uintptr_t();
-		for (auto i = 0; i < this->get_num_methods(); i++)
+		auto monoPtr = uintptr_t();
+		for (auto i = 0; i < this->getNumMethods(); i++)
 		{
-			const auto method = this->get_method(i);
+			const auto method = this->getMethod(i);
 			if (!method)
 				continue;
 
-			if (!strcmp(method->name().c_str(), method_name))
-				mono_ptr = reinterpret_cast<uintptr_t>(method);
+			if (!strcmp(method->name().c_str(), methodName))
+				monoPtr = reinterpret_cast<uintptr_t>(method);
 		}
 
-		return reinterpret_cast<mono_method_t*>(functions[mono_ptr]);
+		return reinterpret_cast<MonoMethod*>(functions[monoPtr]);
 	}
 
-	mono_class_field_t* find_field(const char* field_name)
+	MonoClassField* findField(const char* fieldName)
 	{
-		for (auto i = 0; i < this->num_fields(); i++)
+		for (auto i = 0; i < this->numFields(); i++)
 		{
-			const auto field = this->get_field(i);
+			const auto field = this->getField(i);
 			if (!field)
 				continue;
 
-			if (!strcmp(field->name().c_str(), field_name))
+			if (!strcmp(field->name().c_str(), fieldName))
 				return field;
 		}
 
@@ -219,23 +219,23 @@ struct mono_class_t
 	}
 };
 
-struct mono_hash_table_t
+struct MonoHashTable
 {
 	OFFSET(size, uint32_t, 0x18);
 	OFFSET(data, uintptr_t, 0x20);
-	OFFSET(next_value, void*, 0x108);
-	OFFSET(key_extract, unsigned int, 0x58);
+	OFFSET(nextValue, void*, 0x108);
+	OFFSET(keyExtract, unsigned int, 0x58);
 
 	template <typename T>
 	T* lookup(void* key)
 	{
-		auto v4 = static_cast<mono_hash_table_t*>(Memory::read<void*>(data() + 0x8 * (reinterpret_cast<unsigned int>(key) % this->size())));
+		auto v4 = static_cast<MonoHashTable*>(Memory::read<void*>(data() + 0x8 * (reinterpret_cast<unsigned int>(key) % this->size())));
 		if (!v4)
 			return nullptr;
 
-		while (reinterpret_cast<void*>(v4->key_extract()) != key)
+		while (reinterpret_cast<void*>(v4->keyExtract()) != key)
 		{
-			v4 = static_cast<mono_hash_table_t*>(v4->next_value());
+			v4 = static_cast<MonoHashTable*>(v4->nextValue());
 			if (!v4)
 				return nullptr;
 		}
@@ -244,47 +244,48 @@ struct mono_hash_table_t
 	}
 };
 
-struct mono_image_t
+struct MonoImage
 {
 	OFFSET(flags, int, 0x1C);
 
-	mono_table_info_t* get_table_info(const int table_id)
+	MonoTableInfo* getTableInfo(const int tableId)
 	{
-		if (table_id > 55)
+		if (tableId > 55)
 			return nullptr;
-		return reinterpret_cast<mono_table_info_t*>(THISPTR + 0x10 * (static_cast<int>(table_id) + 0xE));
+		return reinterpret_cast<MonoTableInfo*>(THISPTR + 0x10 * (static_cast<int>(tableId) + 0xE));
 	}
 
-	mono_class_t* get(const int type_id)
+	MonoClass* get(const int typeId)
 	{
 		if ((this->flags() & 0x20) != 0)
 			return nullptr;
 
-		if ((type_id & 0xFF000000) != 0x2000000)
+		if ((typeId & 0xFF000000) != 0x2000000)
 			return nullptr;
 
-		return reinterpret_cast<mono_hash_table_t*>(this + 0x4D0)->lookup<mono_class_t>(reinterpret_cast<void*>(type_id));
+		return reinterpret_cast<MonoHashTable*>(this + 0x4D0)->lookup<MonoClass>(reinterpret_cast<void*>(typeId));
 	}
 };
 
 struct mono_assembly_t
 {
-	OFFSET(mono_image, mono_image_t*, 0x60);
+	OFFSET(monoImage, MonoImage*, 0x60);
 };
 
 namespace Mono
 {
-	inline mono_root_domain_t* get_root_domain()
+	inline MonoRootDomain* getRootDomain()
 	{
-		return reinterpret_cast<mono_root_domain_t*>(Memory::read<uintptr_t>(Memory::base_address + GET_ROOT_DOMAIN_OFFSET));
+		return reinterpret_cast<MonoRootDomain*>(Memory::read<uintptr_t>(Memory::baseAddress + GET_ROOT_DOMAIN_OFFSET));
 	}
 
-	inline void init_functions()
-	{ // credits: niceone1 (https://www.unknowncheats.me/forum/3434741-post11.html)
-		const auto jitted_table = get_root_domain()->jitted_function_table();
-		for (auto i = 0; i < Memory::read<int>(jitted_table + 0x8); i++)
+	// credits: niceone1 (https://www.unknowncheats.me/forum/3434741-post11.html)
+	inline void initFunctions()
+	{
+		const auto jittedTable = getRootDomain()->jittedFunctionTable();
+		for (auto i = 0; i < Memory::read<int>(jittedTable + 0x8); i++)
 		{
-			const auto entry = Memory::read<uintptr_t>(jitted_table + 0x10 + i * 0x8);
+			const auto entry = Memory::read<uintptr_t>(jittedTable + 0x10 + i * 0x8);
 			if (!entry)
 				continue;
 
@@ -294,68 +295,68 @@ namespace Mono
 				if (!function)
 					continue;
 
-				const auto mono_ptr = Memory::read<uintptr_t>(function + 0x0);
-				const auto jitted_ptr = Memory::read<uintptr_t>(function + 0x10);
-				functions[mono_ptr] = jitted_ptr;
+				const auto monoPtr = Memory::read<uintptr_t>(function + 0x0);
+				const auto jittedPtr = Memory::read<uintptr_t>(function + 0x10);
+				functions[monoPtr] = jittedPtr;
 			}
 		}
 	}
 
-	inline mono_assembly_t* domain_assembly_open(mono_root_domain_t* domain, const char* name)
+	inline mono_assembly_t* domainAssemblyOpen(MonoRootDomain* domain, const char* name)
 	{
-		auto domain_assemblies = domain->domain_assemblies();
-		if (!domain_assemblies)
+		auto domainAssemblies = domain->domainAssemblies();
+		if (!domainAssemblies)
 			return nullptr;
 
 		auto data = uintptr_t();
 		while (true)
 		{
-			data = domain_assemblies->data();
+			data = domainAssemblies->data();
 			if (!data)
 				continue;
 
-			const auto data_name = read_widechar(Memory::read<uintptr_t>(data + 0x10), 128);
-			if (!strcmp(data_name.c_str(), name))
+			const auto dataName = readWidechar(Memory::read<uintptr_t>(data + 0x10), 128);
+			if (!strcmp(dataName.c_str(), name))
 				break;
 
-			domain_assemblies = reinterpret_cast<glist_t*>(domain_assemblies->next());
-			if (!domain_assemblies)
+			domainAssemblies = reinterpret_cast<GList*>(domainAssemblies->next());
+			if (!domainAssemblies)
 				break;
 		}
 
 		return reinterpret_cast<mono_assembly_t*>(data);
 	}
 
-	inline mono_class_t* find_class(const char* assembly_name, const char* class_name)
+	inline MonoClass* findClass(const char* assemblyName, const char* className)
 	{
-		const auto root_domain = get_root_domain();
-		if (!root_domain)
+		const auto rootDomain = getRootDomain();
+		if (!rootDomain)
 			return nullptr;
 
-		const auto domain_assembly = domain_assembly_open(root_domain, assembly_name);
+		const auto domain_assembly = domainAssemblyOpen(rootDomain, assemblyName);
 		if (!domain_assembly)
 			return nullptr;
 
-		const auto mono_image = domain_assembly->mono_image();
-		if (!mono_image)
+		const auto monoImage = domain_assembly->monoImage();
+		if (!monoImage)
 			return nullptr;
 
-		const auto table_info = mono_image->get_table_info(3); // 3 now?
-		if (!table_info)
+		const auto tableInfo = monoImage->getTableInfo(3); // 3 now?
+		if (!tableInfo)
 			return nullptr;
 
-		auto tbl = static_cast<mono_hash_table_t*>(reinterpret_cast<void*>(mono_image + 0x4D0));
-		for (int i = 0; i < table_info->get_rows(); i++)
+		auto tbl = static_cast<MonoHashTable*>(reinterpret_cast<void*>(monoImage + 0x4D0));
+		for (int i = 0; i < tableInfo->getRows(); i++)
 		{
-			const auto ptr = tbl->lookup<mono_class_t>(reinterpret_cast<void*>(0x02000000 | i + 1));
+			const auto ptr = tbl->lookup<MonoClass>(reinterpret_cast<void*>(0x02000000 | i + 1));
 			if (!ptr)
 				continue;
 
-			auto name = ptr->name();
-			if (!ptr->namespace_name().empty())
-				name = ptr->namespace_name().append(".").append(ptr->name());
+			auto name = ptr->getName();
+			if (!ptr->getNamespace().empty())
+				name = ptr->getNamespace().append(".").append(ptr->getName());
 
-			if (!strcmp(name.c_str(), class_name))
+			if (!strcmp(name.c_str(), className))
 				return ptr;
 		}
 

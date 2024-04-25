@@ -20,13 +20,13 @@ namespace Unity
 			return Memory::read<uint32_t>(THISPTR + 0x10);
 		}
 
-		string to_string()
+		string toString()
 		{
 			uintptr_t address = THISPTR + 0x14;
 			uint32_t size = length() * sizeof(wchar_t);
 
 			const auto buffer = make_unique<wchar_t[]>(size);
-			ReadProcessMemory(Memory::proc_handle, (LPVOID)address, buffer.get(), size, NULL);
+			ReadProcessMemory(Memory::hProc, (LPVOID)address, buffer.get(), size, NULL);
 
 			wstring wstr(buffer.get());
 			using convert_typeX = codecvt_utf8<wchar_t>;
@@ -50,12 +50,12 @@ namespace Unity
 			return Memory::read<T>(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x20 + (index * sizeof(T)));
 		}
 
-		vector<T> to_vector()
+		vector<T> toVector()
 		{
 			uint32_t len = count();
 			auto buffer = make_unique<T[]>(len);
 			LPVOID address = (LPVOID)(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x20);
-			ReadProcessMemory(Memory::proc_handle, address, buffer.get(), len * sizeof(T), NULL);
+			ReadProcessMemory(Memory::hProc, address, buffer.get(), len * sizeof(T), NULL);
 
 			vector<T> vec(len);
 			memcpy(vec.data(), buffer.get(), len * sizeof(T));
@@ -77,11 +77,11 @@ namespace Unity
 			return Memory::read<T>(THISPTR + 0x20 + (index * sizeof(T)));
 		}
 
-		vector<T> to_vector()
+		vector<T> toVector()
 		{
 			uint32_t len = length();
 			auto buffer = make_unique<T[]>(len);
-			ReadProcessMemory(Memory::proc_handle, (LPVOID)(THISPTR + 0x20), buffer.get(), len * sizeof(T), NULL);
+			ReadProcessMemory(Memory::hProc, (LPVOID)(THISPTR + 0x20), buffer.get(), len * sizeof(T), NULL);
 
 			vector<T> vec(len);
 			memcpy(vec.data(), buffer.get(), len * sizeof(T));
@@ -105,6 +105,7 @@ namespace Unity
 		inline Vector3 operator/(const Vector3& other) const { return Vector3(x / other.x, y / other.y, z / other.z); }
 		inline Vector3 operator*(float scalar) const { return Vector3(x * scalar, y * scalar, z * scalar); }
 		inline Vector3 operator/(float scalar) const { return Vector3(x / scalar, y / scalar, z / scalar); }
+		inline Vector3 operator-() const { return Vector3(-x, -y, -z); }
 
 		inline Vector3& operator+=(const Vector3& other)
 		{
@@ -159,7 +160,7 @@ namespace Unity
 			return Vector3(x / len, y / len, z / len);
 		}
 
-		string to_string() const
+		string toString() const
 		{
 			return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
 		}
@@ -260,7 +261,7 @@ namespace Unity
 					this->capacity = capacity;
 				}
 
-				Memory::read_buffer(address, (void*)buffer, sizeof(T) * capacity);
+				Memory::readBuffer(address, (void*)buffer, sizeof(T) * capacity);
 			}
 
 			inline T& operator[](int index)
@@ -306,17 +307,17 @@ namespace Unity
 		// actual methods
 		// ------------------------------
 
-		inline Vector3 local_position()
+		inline Vector3 localPosition()
 		{
 			return Memory::read<trsX>(localTransforms + transformAccess.index * sizeof(trsX)).t;
 		}
 
-		inline Vector3 local_scale()
+		inline Vector3 localScale()
 		{
 			return Memory::read<trsX>(localTransforms + transformAccess.index * sizeof(trsX)).s;
 		}
 
-		inline Quaternion local_rotation()
+		inline Quaternion localRotation()
 		{
 			return Memory::read<trsX>(localTransforms + transformAccess.index * sizeof(trsX)).q;
 		}
@@ -380,19 +381,19 @@ namespace Unity
 		}
 
 		// local to world
-		inline Vector3 TransformDirection(Vector3 localDirection)
+		inline Vector3 transformDirection(Vector3 localDirection)
 		{
 			return rotation() * localDirection;
 		}
 
 		// world to local
-		inline Vector3 InverseTransformDirection(Vector3 worldDirection)
+		inline Vector3 inverseTransformDirection(Vector3 worldDirection)
 		{
 			return rotation().conjugate() * worldDirection;
 		}
 
 		// local to world
-		inline Vector3 TransformPoint(Vector3 localPoint)
+		inline Vector3 transformPoint(Vector3 localPoint)
 		{
 			updateTrsXBuffer();
 			updateParentIndicesBuffer();
@@ -414,7 +415,7 @@ namespace Unity
 		}
 
 		// world to local
-		inline Vector3 InverseTransformPoint(Vector3 worldPoint)
+		inline Vector3 inverseTransformPoint(Vector3 worldPoint)
 		{
 			updateTrsXBuffer();
 			updateParentIndicesBuffer();

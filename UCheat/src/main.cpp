@@ -12,14 +12,14 @@ int main()
     Classes::init();
     Offsets::init();
 
-    if (!SDG::Provider::is_connected())
+    if (!SDG::Provider::isConnected())
     {
         log("It seems like you're not in a server yet, run again when you are");
         system("pause");
         return 0;
     }
 
-    auto local_player = SDG::Player::player();
+    auto local_player = SDG::Player::getPlayer();
     if (!local_player)
     {
         log("Couldn't find local player");
@@ -31,7 +31,7 @@ int main()
     printf("\n");
 
     // iterate players
-    auto clients = SDG::Provider::clients();
+    auto clients = SDG::Provider::getClients();
     int count = clients->count();
     log("Connected players: %d", count);
     for (uint32_t i = 0; i < count; i++)
@@ -39,63 +39,63 @@ int main()
         auto steam_player = clients->get(i);
 
         // player info
-        auto player_id = steam_player->info();
-        auto steam_name = player_id->steam_name()->to_string();
-        auto public_name = player_id->public_name()->to_string();
-        auto steam_id = player_id->steam_id();
+        auto player_id = steam_player->getInfo();
+        auto steam_name = player_id->getSteamName()->toString();
+        auto public_name = player_id->getPublicName()->toString();
+        auto steam_id = player_id->getSteamId();
 
-        auto player = steam_player->player();
-        auto player_life = player->life();
-        auto player_pos = player->game_object()->transform().local_position();
+        auto player = steam_player->getPlayer();
+        auto player_life = player->getLife();
+        auto player_pos = player->getGameObject()->transform().localPosition();
 
         log("Player %d: %s (SteamID: %llu) - %f %f %f", i, steam_name.c_str(), steam_id, player_pos.x, player_pos.y, player_pos.z);
-        log("Health: %d, Stamina: %d, Food: %d, Water: %d", player_life->health(), player_life->stamina(), player_life->food(), player_life->water());
+        log("Health: %d, Stamina: %d, Food: %d, Water: %d", player_life->getHealth(), player_life->getStamina(), player_life->getFood(), player_life->getWater());
         printf("\n");
     }
 
     // iterate zombies
-    auto player_pos = local_player->game_object()->transform().local_position();
-    auto regions = SDG::ZombieManager::regions()->to_vector();
+    auto player_pos = local_player->getGameObject()->transform().localPosition();
+    auto regions = SDG::ZombieManager::getRegions()->toVector();
 
     for (auto region : regions)
-	{
-		auto zombies = region->zombies()->to_vector();
-		for (auto zombie : zombies)
-		{
+    {
+        auto zombies = region->getZombies()->toVector();
+        for (auto zombie : zombies)
+        {
             // zombie info
-            auto id = zombie->id();
-            auto is_alive = zombie->is_dead() ? "No" : "Yes";
-            auto health = zombie->health();
-            auto max_health = zombie->max_health();
-            auto pos = zombie->game_object()->transform().local_position();
+            auto id = zombie->getId();
+            auto is_alive = zombie->isDead() ? "No" : "Yes";
+            auto health = zombie->getHealth();
+            auto max_health = zombie->getMaxHealth();
+            auto pos = zombie->getGameObject()->transform().localPosition();
 
             log("Zombie %d - isAlive: %s - Health: %d/%d - Pos: %f %f %f",
                 id, is_alive, health, max_health, pos.x, pos.y, pos.z);
-		}
-	}
+        }
+    }
 
     // admin stuff
-    auto owner = local_player->channel()->owner();
-    owner->set_is_admin(1);
-    if (owner->is_admin())
+    auto owner = local_player->getChannel()->getOwner();
+    owner->setAdmin(1);
+    if (owner->isAdmin())
         log("Use keys Shift + F1 & F7 for freecam & esp");
 
     // gun mods
-    auto equipment = local_player->equipment();
-    auto useable = (SDG::UseableGun*) equipment->useable();
-    auto gun = (SDG::ItemGunAsset*) equipment->asset();
+    auto equipment = local_player->getEquipment();
+    auto useable = (SDG::UseableGun*)equipment->getUseable();
+    auto gun = (SDG::ItemGunAsset*)equipment->getAsset();
 
     if (gun && useable)
     {
-        log("Current Weapon: %s (%i)", gun->name()->to_string().c_str(), gun->id());
-        log("Current Ammo: %d", useable->ammo());
-        useable->set_ammo(100);
+        log("Current Weapon: %s (%i)", gun->getName()->toString().c_str(), gun->getId());
+        log("Current Ammo: %d", useable->getAmmo());
+        useable->setAmmo(100);
         log("Set current weapon ammo to 100");
-        gun->set_recoil_max_x(0);
-        gun->set_recoil_max_y(0);
-        gun->set_recoil_min_x(0);
-        gun->set_recoil_min_y(0);
-        gun->set_base_spread_angle_radians(0);
+        gun->setRecoilMaxX(0);
+        gun->setRecoilMaxY(0);
+        gun->setRecoilMinX(0);
+        gun->setRecoilMinY(0);
+        gun->setBaseSpreadAngle(0);
         log("Set current weapon recoil and spread to 0");
     }
     else

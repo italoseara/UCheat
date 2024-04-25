@@ -3,95 +3,115 @@
 
 #include "mono.hpp"
 
-#define GETTER_DEF(return_type, field_name, offset)                 \
-	return_type field_name()                                        \
-	{                                                               \
-		return Memory::read<return_type>(THISPTR + offset);         \
-	}   
-
-#define SETTER_DEF(return_type, field_name, offset)                 \
-	void set_##field_name(return_type value)                        \
-	{                                                               \
-		return Memory::write<return_type>(value, THISPTR + offset); \
+#define GETTER_DEF(returnType, fieldName, offset)          \
+	returnType get##fieldName()                            \
+	{                                                      \
+		return Memory::read<returnType>(THISPTR + offset); \
 	}
 
-#define GETTER_SETTER_DEF(return_type, field_name, offset) \
-	GETTER_DEF(return_type, field_name, offset)            \
-	SETTER_DEF(return_type, field_name, offset)
-
-#define STATIC_GETTER_DEF(return_type, field_name, offset)             \
-	static return_type field_name()                                    \
-	{                                                                  \
-		return Memory::read<return_type>(instance() + offset);         \
+#define GETTER_BOOL_DEF(fieldName, offset)                  \
+	bool is##fieldName()                                    \
+	{                                                       \
+		return Memory::read<bool>(THISPTR + offset);        \
 	}
 
-#define STATIC_SETTER_DEF(return_type, field_name, offset)             \
-	static void set_##field_name(return_type value)                    \
-	{                                                                  \
-		return Memory::write<return_type>(value, instance() + offset); \
+#define SETTER_DEF(returnType, fieldName, offset)                  \
+	void set##fieldName(returnType value)                          \
+	{                                                              \
+		return Memory::write<returnType>(value, THISPTR + offset); \
 	}
 
-#define STATIC_GETTER_SETTER_DEF(return_type, field_name, offset) \
-	STATIC_GETTER_DEF(return_type, field_name, offset)            \
-	STATIC_SETTER_DEF(return_type, field_name, offset)
+#define GETTER_SETTER_DEF(returnType, fieldName, offset) \
+	GETTER_DEF(returnType, fieldName, offset)            \
+	SETTER_DEF(returnType, fieldName, offset)
 
-#define INSTANCE_DEF(class_name)                                                             \
-	static inline uintptr_t instance()                                                       \
-	{                                                                                        \
-		static uintptr_t inst = 0;                                                           \
-		if (!inst)                                                                           \
-			inst = class_name->get_vtable(Mono::get_root_domain())->get_static_field_data(); \
-		return inst;                                                                         \
+#define GETTER_SETTER_BOOL_DEF(fieldName, offset) \
+	GETTER_BOOL_DEF(fieldName, offset)            \
+	SETTER_DEF(bool, fieldName, offset)
+
+#define STATIC_GETTER_DEF(returnType, fieldName, offset)             \
+	static returnType get##fieldName()                               \
+	{                                                                \
+		return Memory::read<returnType>(instance() + offset);        \
+	}
+
+#define STATIC_GETTER_BOOL_DEF(fieldName, offset)                    \
+	static bool is##fieldName()                                      \
+	{                                                                \
+		return Memory::read<bool>(instance() + offset);             \
+	}
+
+#define STATIC_SETTER_DEF(returnType, fieldName, offset)              \
+	static void set##fieldName(returnType value)                      \
+	{                                                                 \
+		return Memory::write<returnType>(value, instance() + offset); \
+	}
+
+#define STATIC_GETTER_SETTER_DEF(returnType, fieldName, offset) \
+	STATIC_GETTER_DEF(returnType, fieldName, offset)            \
+	STATIC_SETTER_DEF(returnType, fieldName, offset)
+
+#define STATIC_GETTER_SETTER_BOOL_DEF(fieldName, offset) \
+	STATIC_GETTER_BOOL_DEF(fieldName, offset)            \
+	STATIC_SETTER_DEF(bool, fieldName, offset)
+
+#define INSTANCE_DEF(className)                                                             \
+	static inline uintptr_t instance()                                                      \
+	{                                                                                       \
+		static uintptr_t inst = 0;                                                          \
+		if (!inst)                                                                          \
+			inst = className->getVTable(Mono::getRootDomain())->getStaticFieldData();       \
+		return inst;                                                                        \
 	}
 
 #define GAMEOBJECT_DEF()                                                                                    \
-	Unity::GameObject *game_object()                                                                         \
+	Unity::GameObject *getGameObject()                                                                      \
 	{                                                                                                       \
 		return (Unity::GameObject*)Memory::read<uintptr_t>(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x30); \
 	}
 
-#define GET_OFFSET(class_name, field_name) \
-	class_name->find_field(field_name)->offset()
+#define GET_OFFSET(className, fieldName) \
+	className->findField(fieldName)->offset()
 
 namespace Classes
 {
-	mono_class_t* Provider;
-	mono_class_t* SteamChannel;
-	mono_class_t* SteamPlayer;
-	mono_class_t* SteamPlayerID;
+	MonoClass* Provider;
+	MonoClass* SteamChannel;
+	MonoClass* SteamPlayer;
+	MonoClass* SteamPlayerID;
 
-	mono_class_t* Player;
-	mono_class_t* PlayerLife;
-	mono_class_t* PlayerEquipment;
+	MonoClass* Player;
+	MonoClass* PlayerLife;
+	MonoClass* PlayerEquipment;
 
-	mono_class_t* ZombieManager;
-	mono_class_t* ZombieRegion;
-	mono_class_t* Zombie;
+	MonoClass* ZombieManager;
+	MonoClass* ZombieRegion;
+	MonoClass* Zombie;
 
-	mono_class_t* Asset;
-	mono_class_t* ItemGunAsset;
-	mono_class_t* Useable;
-	mono_class_t* UseableGun;
+	MonoClass* Asset;
+	MonoClass* ItemGunAsset;
+	MonoClass* Useable;
+	MonoClass* UseableGun;
 
 	void init()
 	{
-		Provider      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Provider");
-		SteamChannel  = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamChannel");
-		SteamPlayer   = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
-		SteamPlayerID = Mono::find_class("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
+		Provider      = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Provider");
+		SteamChannel  = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamChannel");
+		SteamPlayer   = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
+		SteamPlayerID = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
 
-		Player          = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Player");
-		PlayerLife      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerLife");
-		PlayerEquipment = Mono::find_class("Assembly-CSharp", "SDG.Unturned.PlayerEquipment");
+		Player          = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Player");
+		PlayerLife      = Mono::findClass("Assembly-CSharp", "SDG.Unturned.PlayerLife");
+		PlayerEquipment = Mono::findClass("Assembly-CSharp", "SDG.Unturned.PlayerEquipment");
 
-		ZombieManager = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ZombieManager");
-		ZombieRegion  = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ZombieRegion");
-		Zombie        = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Zombie");
+		ZombieManager = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ZombieManager");
+		ZombieRegion  = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ZombieRegion");
+		Zombie        = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Zombie");
 
-		Asset           = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Asset");
-		ItemGunAsset    = Mono::find_class("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
-		Useable         = Mono::find_class("Assembly-CSharp", "SDG.Unturned.Useable");
-		UseableGun      = Mono::find_class("Assembly-CSharp", "SDG.Unturned.UseableGun");
+		Asset           = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Asset");
+		ItemGunAsset    = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
+		Useable         = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Useable");
+		UseableGun      = Mono::findClass("Assembly-CSharp", "SDG.Unturned.UseableGun");
 	}
 }
 
@@ -99,9 +119,9 @@ namespace Offsets
 {
 	namespace Provider
 	{
-		uintptr_t is_connected;
-		uintptr_t is_loading_ugc;
-		uintptr_t clients;
+		uintptr_t _isConnected;
+		uintptr_t isLoadingUGC;
+		uintptr_t _clients;
 	}
 
 	namespace SteamChannel
@@ -111,64 +131,64 @@ namespace Offsets
 
 	namespace SteamPlayer
 	{
-		uintptr_t is_admin;
-		uintptr_t joined;
-		uintptr_t player;
-		uintptr_t info;
+		uintptr_t _isAdmin;
+		uintptr_t _joined;
+		uintptr_t _player;
+		uintptr_t _playerID;
 	}
 
 	namespace SteamPlayerID
 	{
-		uintptr_t private_name;
-		uintptr_t steam_name;
-		uintptr_t public_name;
-		uintptr_t steam_id;
+		uintptr_t _nickName;
+		uintptr_t _playerName;
+		uintptr_t _characterName;
+		uintptr_t _steamID;
 	}
 
 	namespace Player
 	{
-		uintptr_t player;
-		uintptr_t channel;
-		uintptr_t equipment;
-		uintptr_t life;
+		uintptr_t _player;
+		uintptr_t _channel;
+		uintptr_t _equipment;
+		uintptr_t _life;
 	}
 
 	namespace PlayerLife
 	{
-		uintptr_t is_dead;
-		uintptr_t is_bleeding;
-		uintptr_t is_broken;
-		uintptr_t health;
-		uintptr_t food;
-		uintptr_t water;
-		uintptr_t virus;
-		uintptr_t stamina;
-		uintptr_t oxygen;
+		uintptr_t _isDead;
+		uintptr_t _isBleeding;
+		uintptr_t _isBroken;
+		uintptr_t _health;
+		uintptr_t _food;
+		uintptr_t _water;
+		uintptr_t _virus;
+		uintptr_t _stamina;
+		uintptr_t _oxygen;
 	}
 
 	namespace PlayerEquipment
 	{
-		uintptr_t asset;
-		uintptr_t useable;
+		uintptr_t _asset;
+		uintptr_t _useable;
 	}
 
 	namespace ZombieManager
 	{
-		uintptr_t ticking_zombies;
-		uintptr_t regions;
+		uintptr_t _tickingZombies;
+		uintptr_t _regions;
 	}
 
 	namespace ZombieRegion
 	{
-		uintptr_t zombies;
+		uintptr_t _zombies;
 	}
 
 	namespace Zombie
 	{
 		uintptr_t id;
 		uintptr_t health;
-		uintptr_t max_health;
-		uintptr_t is_dead;
+		uintptr_t maxHealth;
+		uintptr_t isDead;
 		uintptr_t eyes;
 	}
 
@@ -181,11 +201,11 @@ namespace Offsets
 	namespace ItemGunAsset
 	{
 		uintptr_t id;
-		uintptr_t recoil_min_x;
-		uintptr_t recoil_max_x;
-		uintptr_t recoil_min_y;
-		uintptr_t recoil_max_y;
-		uintptr_t base_spread_angle_radians;
+		uintptr_t recoilMin_x;
+		uintptr_t recoilMax_x;
+		uintptr_t recoilMin_y;
+		uintptr_t recoilMax_y;
+		uintptr_t baseSpreadAngleRadians;
 	}
 
 	namespace UseableGun
@@ -195,59 +215,59 @@ namespace Offsets
 
 	void init()
 	{	
-		Provider::is_connected   = GET_OFFSET(Classes::Provider, "_isConnected");
-		Provider::is_loading_ugc = GET_OFFSET(Classes::Provider, "isLoadingUGC");
-		Provider::clients        = GET_OFFSET(Classes::Provider, "_clients");
+		Provider::_isConnected = GET_OFFSET(Classes::Provider, "_isConnected");
+		Provider::isLoadingUGC = GET_OFFSET(Classes::Provider, "isLoadingUGC");
+		Provider::_clients     = GET_OFFSET(Classes::Provider, "_clients");
 
 		SteamChannel::owner = GET_OFFSET(Classes::SteamChannel, "owner");
 
-		SteamPlayer::is_admin  = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
-		SteamPlayer::joined    = GET_OFFSET(Classes::SteamPlayer, "_joined");
-		SteamPlayer::player    = GET_OFFSET(Classes::SteamPlayer, "_player");
-		SteamPlayer::info      = GET_OFFSET(Classes::SteamPlayer, "_playerID");
+		SteamPlayer::_isAdmin  = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
+		SteamPlayer::_joined   = GET_OFFSET(Classes::SteamPlayer, "_joined");
+		SteamPlayer::_player   = GET_OFFSET(Classes::SteamPlayer, "_player");
+		SteamPlayer::_playerID = GET_OFFSET(Classes::SteamPlayer, "_playerID");
 
-		SteamPlayerID::steam_name   = GET_OFFSET(Classes::SteamPlayerID, "_playerName");
-		SteamPlayerID::public_name  = GET_OFFSET(Classes::SteamPlayerID, "_characterName");
-		SteamPlayerID::private_name = GET_OFFSET(Classes::SteamPlayerID, "_nickName");
-		SteamPlayerID::steam_id     = GET_OFFSET(Classes::SteamPlayerID, "_steamID");
+		SteamPlayerID::_playerName    = GET_OFFSET(Classes::SteamPlayerID, "_playerName");
+		SteamPlayerID::_characterName = GET_OFFSET(Classes::SteamPlayerID, "_characterName");
+		SteamPlayerID::_nickName      = GET_OFFSET(Classes::SteamPlayerID, "_nickName");
+		SteamPlayerID::_steamID       = GET_OFFSET(Classes::SteamPlayerID, "_steamID");
 
-		Player::player    = GET_OFFSET(Classes::Player, "_player");
-		Player::channel   = GET_OFFSET(Classes::Player, "_channel");
-		Player::equipment = GET_OFFSET(Classes::Player, "_equipment");
-		Player::life      = GET_OFFSET(Classes::Player, "_life");
+		Player::_player    = GET_OFFSET(Classes::Player, "_player");
+		Player::_channel   = GET_OFFSET(Classes::Player, "_channel");
+		Player::_equipment = GET_OFFSET(Classes::Player, "_equipment");
+		Player::_life      = GET_OFFSET(Classes::Player, "_life");
 
-		PlayerLife::is_dead     = GET_OFFSET(Classes::PlayerLife, "_isDead");
-		PlayerLife::is_bleeding = GET_OFFSET(Classes::PlayerLife, "_isBleeding");
-		PlayerLife::is_broken   = GET_OFFSET(Classes::PlayerLife, "_isBroken");
-		PlayerLife::health      = GET_OFFSET(Classes::PlayerLife, "_health");
-		PlayerLife::food        = GET_OFFSET(Classes::PlayerLife, "_food");
-		PlayerLife::water       = GET_OFFSET(Classes::PlayerLife, "_water");
-		PlayerLife::virus       = GET_OFFSET(Classes::PlayerLife, "_virus");
-		PlayerLife::stamina     = GET_OFFSET(Classes::PlayerLife, "_stamina");
-		PlayerLife::oxygen      = GET_OFFSET(Classes::PlayerLife, "_oxygen");
+		PlayerLife::_isDead     = GET_OFFSET(Classes::PlayerLife, "_isDead");
+		PlayerLife::_isBleeding = GET_OFFSET(Classes::PlayerLife, "_isBleeding");
+		PlayerLife::_isBroken   = GET_OFFSET(Classes::PlayerLife, "_isBroken");
+		PlayerLife::_health      = GET_OFFSET(Classes::PlayerLife, "_health");
+		PlayerLife::_food        = GET_OFFSET(Classes::PlayerLife, "_food");
+		PlayerLife::_water       = GET_OFFSET(Classes::PlayerLife, "_water");
+		PlayerLife::_virus       = GET_OFFSET(Classes::PlayerLife, "_virus");
+		PlayerLife::_stamina     = GET_OFFSET(Classes::PlayerLife, "_stamina");
+		PlayerLife::_oxygen      = GET_OFFSET(Classes::PlayerLife, "_oxygen");
 
-		PlayerEquipment::asset   = GET_OFFSET(Classes::PlayerEquipment, "_asset");
-		PlayerEquipment::useable = GET_OFFSET(Classes::PlayerEquipment, "_useable");
+		PlayerEquipment::_asset   = GET_OFFSET(Classes::PlayerEquipment, "_asset");
+		PlayerEquipment::_useable = GET_OFFSET(Classes::PlayerEquipment, "_useable");
 
-		ZombieManager::ticking_zombies = GET_OFFSET(Classes::ZombieManager, "_tickingZombies");
-		ZombieManager::regions         = GET_OFFSET(Classes::ZombieManager, "_regions");
+		ZombieManager::_tickingZombies = GET_OFFSET(Classes::ZombieManager, "_tickingZombies");
+		ZombieManager::_regions        = GET_OFFSET(Classes::ZombieManager, "_regions");
 
-		ZombieRegion::zombies = GET_OFFSET(Classes::ZombieRegion, "_zombies");
+		ZombieRegion::_zombies = GET_OFFSET(Classes::ZombieRegion, "_zombies");
 
-		Zombie::id         = GET_OFFSET(Classes::Zombie, "id");
-		Zombie::health     = GET_OFFSET(Classes::Zombie, "health");
-		Zombie::max_health = GET_OFFSET(Classes::Zombie, "maxHealth");
-		Zombie::is_dead    = GET_OFFSET(Classes::Zombie, "isDead");
-		Zombie::eyes       = GET_OFFSET(Classes::Zombie, "eyes");
+		Zombie::id        = GET_OFFSET(Classes::Zombie, "id");
+		Zombie::health    = GET_OFFSET(Classes::Zombie, "health");
+		Zombie::maxHealth = GET_OFFSET(Classes::Zombie, "maxHealth");
+		Zombie::isDead    = GET_OFFSET(Classes::Zombie, "isDead");
+		Zombie::eyes      = GET_OFFSET(Classes::Zombie, "eyes");
 
 		Asset::id   = GET_OFFSET(Classes::Asset, "id");
 		Asset::name = GET_OFFSET(Classes::Asset, "name");
 
-		ItemGunAsset::recoil_min_x              = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_x");
-		ItemGunAsset::recoil_max_x              = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_x");
-		ItemGunAsset::recoil_min_y              = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_y");
-		ItemGunAsset::recoil_max_y              = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_y");
-		ItemGunAsset::base_spread_angle_radians = GET_OFFSET(Classes::ItemGunAsset, "<baseSpreadAngleRadians>k__BackingField");
+		ItemGunAsset::recoilMin_x            = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_x");
+		ItemGunAsset::recoilMax_x            = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_x");
+		ItemGunAsset::recoilMin_y            = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_y");
+		ItemGunAsset::recoilMax_y            = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_y");
+		ItemGunAsset::baseSpreadAngleRadians = GET_OFFSET(Classes::ItemGunAsset, "<baseSpreadAngleRadians>k__BackingField");
 
 		UseableGun::ammo = GET_OFFSET(Classes::UseableGun, "ammo");
 	}

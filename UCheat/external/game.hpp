@@ -29,32 +29,32 @@ namespace SDG
 	private:
 		INSTANCE_DEF(Classes::Provider);
 	public:
-		STATIC_GETTER_DEF(bool, is_connected, Offsets::Provider::is_connected);
-		STATIC_GETTER_DEF(Unity::List<SteamPlayer*>*, clients, Offsets::Provider::clients);
+		STATIC_GETTER_BOOL_DEF(Connected, Offsets::Provider::_isConnected);
+		STATIC_GETTER_DEF(Unity::List<SteamPlayer*>*, Clients, Offsets::Provider::_clients);
 	};
 
 	class SteamChannel
 	{
 	public:
-		GETTER_DEF(SteamPlayer*, owner, Offsets::SteamChannel::owner);
+		GETTER_DEF(SteamPlayer*, Owner, Offsets::SteamChannel::owner);
 	};
 
 	class SteamPlayer
 	{
 	public:
-		GETTER_DEF(Player*, player, Offsets::SteamPlayer::player);
-		GETTER_DEF(float, joined, Offsets::SteamPlayer::joined)
-		GETTER_SETTER_DEF(bool, is_admin, Offsets::SteamPlayer::is_admin);
-		GETTER_DEF(SteamPlayerID*, info, Offsets::SteamPlayer::info);
+		GETTER_DEF(Player*, Player, Offsets::SteamPlayer::_player);
+		GETTER_DEF(float, Joined, Offsets::SteamPlayer::_joined)
+		GETTER_SETTER_BOOL_DEF(Admin, Offsets::SteamPlayer::_isAdmin);
+		GETTER_DEF(SteamPlayerID*, Info, Offsets::SteamPlayer::_playerID);
 	};
 
 	class SteamPlayerID
 	{
 	public:
-		GETTER_DEF(Unity::String*, steam_name, Offsets::SteamPlayerID::steam_name);
-		GETTER_DEF(Unity::String*, public_name, Offsets::SteamPlayerID::public_name);
-		GETTER_DEF(Unity::String*, private_name, Offsets::SteamPlayerID::private_name);
-		GETTER_DEF(uint64_t, steam_id, Offsets::SteamPlayerID::steam_id);
+		GETTER_DEF(Unity::String*, SteamName, Offsets::SteamPlayerID::_playerName);
+		GETTER_DEF(Unity::String*, PublicName, Offsets::SteamPlayerID::_characterName);
+		GETTER_DEF(Unity::String*, PrivateName, Offsets::SteamPlayerID::_nickName);
+		GETTER_DEF(uint64_t, SteamId, Offsets::SteamPlayerID::_steamID);
 	};
 
 	class Player
@@ -62,32 +62,32 @@ namespace SDG
 	private:
 		INSTANCE_DEF(Classes::Player);
 	public:
-		STATIC_GETTER_DEF(Player*, player, Offsets::Player::player);
-		GETTER_DEF(PlayerEquipment*, equipment, Offsets::Player::equipment);
-		GETTER_DEF(SteamChannel*, channel, Offsets::Player::channel);
-		GETTER_DEF(PlayerLife*, life, Offsets::Player::life);
+		STATIC_GETTER_DEF(Player*, Player, Offsets::Player::_player);
+		GETTER_DEF(PlayerEquipment*, Equipment, Offsets::Player::_equipment);
+		GETTER_DEF(SteamChannel*, Channel, Offsets::Player::_channel);
+		GETTER_DEF(PlayerLife*, Life, Offsets::Player::_life);
 		GAMEOBJECT_DEF();
 	};
 
 	class PlayerLife
 	{
 	public:
-		GETTER_SETTER_DEF(bool, is_dead, Offsets::PlayerLife::is_dead);
-		GETTER_SETTER_DEF(bool, is_bleeding, Offsets::PlayerLife::is_bleeding);
-		GETTER_SETTER_DEF(bool, is_broken, Offsets::PlayerLife::is_broken);
-		GETTER_SETTER_DEF(cs_byte, health, Offsets::PlayerLife::health);
-		GETTER_SETTER_DEF(cs_byte, food, Offsets::PlayerLife::food);
-		GETTER_SETTER_DEF(cs_byte, water, Offsets::PlayerLife::water);
-		GETTER_SETTER_DEF(cs_byte, virus, Offsets::PlayerLife::virus);
-		GETTER_SETTER_DEF(cs_byte, stamina, Offsets::PlayerLife::stamina);
-		GETTER_SETTER_DEF(cs_byte, oxygen, Offsets::PlayerLife::oxygen);
+		GETTER_SETTER_BOOL_DEF(Dead, Offsets::PlayerLife::_isDead);
+		GETTER_SETTER_BOOL_DEF(Bleeding, Offsets::PlayerLife::_isBleeding);
+		GETTER_SETTER_BOOL_DEF(Broken, Offsets::PlayerLife::_isBroken);
+		GETTER_SETTER_DEF(cs_byte, Health, Offsets::PlayerLife::_health);
+		GETTER_SETTER_DEF(cs_byte, Food, Offsets::PlayerLife::_food);
+		GETTER_SETTER_DEF(cs_byte, Water, Offsets::PlayerLife::_water);
+		GETTER_SETTER_DEF(cs_byte, Virus, Offsets::PlayerLife::_virus);
+		GETTER_SETTER_DEF(cs_byte, Stamina, Offsets::PlayerLife::_stamina);
+		GETTER_SETTER_DEF(cs_byte, Oxygen, Offsets::PlayerLife::_oxygen);
 	};
 
 	class PlayerEquipment
 	{
 	public:
-		GETTER_DEF(Asset*, asset, Offsets::PlayerEquipment::asset);
-		GETTER_DEF(Useable*, useable, Offsets::PlayerEquipment::useable);
+		GETTER_DEF(Asset*, Asset, Offsets::PlayerEquipment::_asset);
+		GETTER_DEF(Useable*, Useable, Offsets::PlayerEquipment::_useable);
 	};
 
 	class ZombieManager
@@ -95,45 +95,45 @@ namespace SDG
 	private:
 		INSTANCE_DEF(Classes::ZombieManager);
 	public:
-		STATIC_GETTER_DEF(Unity::List<Zombie*>*, ticking_zombies, Offsets::ZombieManager::ticking_zombies);
-		STATIC_GETTER_DEF(Unity::Array<ZombieRegion*>*, regions, Offsets::ZombieManager::regions);
+		STATIC_GETTER_DEF(Unity::List<Zombie*>*, TickingZombies, Offsets::ZombieManager::_tickingZombies);
+		STATIC_GETTER_DEF(Unity::Array<ZombieRegion*>*, Regions, Offsets::ZombieManager::_regions);
 	};
 
 	class ZombieRegion
 	{
 	public:
-		GETTER_DEF(Unity::List<Zombie*>*, zombies, Offsets::ZombieRegion::zombies);
+		GETTER_DEF(Unity::List<Zombie*>*, Zombies, Offsets::ZombieRegion::_zombies);
 	};
 
 	class Zombie
 	{
 	private:
-		GETTER_DEF(uintptr_t, eyes_ptr, Offsets::Zombie::eyes);
+		GETTER_DEF(uintptr_t, EyesPtr, Offsets::Zombie::eyes);
 	public:
-		GETTER_DEF(uint16_t, id, Offsets::Zombie::id);
-		GETTER_SETTER_DEF(uint16_t, health, Offsets::Zombie::health);
-		GETTER_SETTER_DEF(uint16_t, max_health, Offsets::Zombie::max_health);
-		GETTER_SETTER_DEF(bool, is_dead, Offsets::Zombie::is_dead);
+		GETTER_DEF(uint16_t, Id, Offsets::Zombie::id);
+		GETTER_SETTER_DEF(uint16_t, Health, Offsets::Zombie::health);
+		GETTER_SETTER_DEF(uint16_t, MaxHealth, Offsets::Zombie::maxHealth);
+		GETTER_SETTER_BOOL_DEF(Dead, Offsets::Zombie::isDead);
 		GAMEOBJECT_DEF();
 
-		Unity::Transform eyes() { return Unity::Transform(eyes_ptr()); }
+		Unity::Transform getEyes() { return Unity::Transform(getEyesPtr()); }
 	};
 
     class Asset
     {
     public:
-		GETTER_DEF(uint16_t, id, Offsets::Asset::id);
-		GETTER_SETTER_DEF(Unity::String*, name, Offsets::Asset::name);
+		GETTER_DEF(uint16_t, Id, Offsets::Asset::id);
+		GETTER_SETTER_DEF(Unity::String*, Name, Offsets::Asset::name);
     };
 
 	class ItemGunAsset : public Asset
 	{
 	public:
-		GETTER_SETTER_DEF(float, recoil_min_x, Offsets::ItemGunAsset::recoil_min_x);
-		GETTER_SETTER_DEF(float, recoil_max_x, Offsets::ItemGunAsset::recoil_max_x);
-		GETTER_SETTER_DEF(float, recoil_min_y, Offsets::ItemGunAsset::recoil_min_y);
-		GETTER_SETTER_DEF(float, recoil_max_y, Offsets::ItemGunAsset::recoil_max_y);
-		GETTER_SETTER_DEF(float, base_spread_angle_radians, Offsets::ItemGunAsset::base_spread_angle_radians);
+		GETTER_SETTER_DEF(float, RecoilMinX, Offsets::ItemGunAsset::recoilMin_x);
+		GETTER_SETTER_DEF(float, RecoilMaxX, Offsets::ItemGunAsset::recoilMax_x);
+		GETTER_SETTER_DEF(float, RecoilMinY, Offsets::ItemGunAsset::recoilMin_y);
+		GETTER_SETTER_DEF(float, RecoilMaxY, Offsets::ItemGunAsset::recoilMax_y);
+		GETTER_SETTER_DEF(float, BaseSpreadAngle, Offsets::ItemGunAsset::baseSpreadAngleRadians);
 	};
 
 	class Useable
@@ -144,7 +144,7 @@ namespace SDG
 	class UseableGun : public Useable
 	{
 	public:
-		GETTER_SETTER_DEF(cs_byte, ammo, Offsets::UseableGun::ammo);
+		GETTER_SETTER_DEF(cs_byte, Ammo, Offsets::UseableGun::ammo);
 	};
 }
 
