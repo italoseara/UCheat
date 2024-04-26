@@ -26,7 +26,7 @@ namespace Unity
 			uint32_t size = length() * sizeof(wchar_t);
 
 			const auto buffer = make_unique<wchar_t[]>(size);
-			ReadProcessMemory(Memory::hProc, (LPVOID)address, buffer.get(), size, NULL);
+			Memory::readBuffer(address, buffer.get(), size);
 
 			wstring wstr(buffer.get());
 			using convert_typeX = codecvt_utf8<wchar_t>;
@@ -52,10 +52,11 @@ namespace Unity
 
 		vector<T> toVector()
 		{
+			uintptr_t address = Memory::read<uintptr_t>(THISPTR + 0x10) + 0x20;
 			uint32_t len = count();
+
 			auto buffer = make_unique<T[]>(len);
-			LPVOID address = (LPVOID)(Memory::read<uintptr_t>(THISPTR + 0x10) + 0x20);
-			ReadProcessMemory(Memory::hProc, address, buffer.get(), len * sizeof(T), NULL);
+			Memory::readBuffer(address, buffer.get(), len * sizeof(T));
 
 			vector<T> vec(len);
 			memcpy(vec.data(), buffer.get(), len * sizeof(T));
@@ -79,9 +80,11 @@ namespace Unity
 
 		vector<T> toVector()
 		{
+			uint32_t address = THISPTR + 0x20;
 			uint32_t len = length();
+			
 			auto buffer = make_unique<T[]>(len);
-			ReadProcessMemory(Memory::hProc, (LPVOID)(THISPTR + 0x20), buffer.get(), len * sizeof(T), NULL);
+			Memory::readBuffer(address, buffer.get(), len * sizeof(T));
 
 			vector<T> vec(len);
 			memcpy(vec.data(), buffer.get(), len * sizeof(T));

@@ -151,7 +151,6 @@
     <ClCompile Include="external\imgui\imgui_tables.cpp" />
     <ClCompile Include="external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\teste.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\game.hpp" />

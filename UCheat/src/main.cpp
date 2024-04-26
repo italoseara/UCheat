@@ -1,107 +1,283 @@
-// https://github.com/Coopyy/Unturned-External-Base
+// Credits: https://github.com/Coopyy/Unturned-External-Base
 // Rewritten by Ítalo Seara (https://github.com/italoseara)
 
+#include <Windows.h>
+#include <dwmapi.h>
+#include <d3d11.h>
 #include <iostream>
-#include "game.hpp"
 
-using namespace std;
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
 
-int main()
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+namespace Overlay
 {
-    Memory::init();
-    Classes::init();
-    Offsets::init();
+    HINSTANCE hInstance = nullptr;
+    INT nCmdShow = 0;
+    void (*drawLoop)();
 
-    if (!SDG::Provider::isConnected())
+    // Window
+    HWND window = nullptr;
+    int width = 0;
+    int height = 0;
+
+    // DirectX
+    IDXGISwapChain* swapChain = nullptr;
+    ID3D11Device* device = nullptr;
+    ID3D11DeviceContext* deviceContext = nullptr;
+    ID3D11RenderTargetView* renderTargetView = nullptr;
+
+    LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
     {
-        log("It seems like you're not in a server yet, run again when you are");
-        system("pause");
-        return 0;
-    }
+        if (ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam))
+            return 0L;
 
-    auto local_player = SDG::Player::getPlayer();
-    if (!local_player)
-    {
-        log("Couldn't find local player");
-        system("pause");
-        return 0;
-    }
-
-    log("Local Player: %p", local_player);
-    printf("\n");
-
-    // iterate players
-    auto clients = SDG::Provider::getClients();
-    int count = clients->count();
-    log("Connected players: %d", count);
-    for (uint32_t i = 0; i < count; i++)
-    {
-        auto steam_player = clients->get(i);
-
-        // player info
-        auto player_id = steam_player->getInfo();
-        auto steam_name = player_id->getSteamName()->toString();
-        auto public_name = player_id->getPublicName()->toString();
-        auto steam_id = player_id->getSteamId();
-
-        auto player = steam_player->getPlayer();
-        auto player_life = player->getLife();
-        auto player_pos = player->getGameObject()->transform().localPosition();
-
-        log("Player %d: %s (SteamID: %llu) - %f %f %f", i, steam_name.c_str(), steam_id, player_pos.x, player_pos.y, player_pos.z);
-        log("Health: %d, Stamina: %d, Food: %d, Water: %d", player_life->getHealth(), player_life->getStamina(), player_life->getFood(), player_life->getWater());
-        printf("\n");
-    }
-
-    // iterate zombies
-    auto player_pos = local_player->getGameObject()->transform().localPosition();
-    auto regions = SDG::ZombieManager::getRegions()->toVector();
-
-    for (auto region : regions)
-    {
-        auto zombies = region->getZombies()->toVector();
-        for (auto zombie : zombies)
+        if (message == WM_DESTROY)
         {
-            // zombie info
-            auto id = zombie->getId();
-            auto is_alive = zombie->isDead() ? "No" : "Yes";
-            auto health = zombie->getHealth();
-            auto max_health = zombie->getMaxHealth();
-            auto pos = zombie->getGameObject()->transform().localPosition();
+            PostQuitMessage(0);
+            return 0L;
+        }
 
-            log("Zombie %d - isAlive: %s - Health: %d/%d - Pos: %f %f %f",
-                id, is_alive, health, max_health, pos.x, pos.y, pos.z);
+        return DefWindowProc(window, message, wParam, lParam);
+    }
+
+    void InitializeWindow()
+    {
+        WNDCLASSEXW wc{};
+        wc.cbSize = sizeof(WNDCLASSEXW);
+        wc.style = CS_HREDRAW | CS_VREDRAW;
+        wc.lpfnWndProc = WindowProcedure;
+        wc.hInstance = hInstance;
+        wc.lpszClassName = L"UCheatOverlay";
+        if (!RegisterClassExW(&wc))
+        {
+            std::cerr << "Failed to register window class." << std::endl;
+            exit(1);
+        }
+
+        width = GetSystemMetrics(SM_CXSCREEN);
+        height = GetSystemMetrics(SM_CYSCREEN);
+        window = CreateWindowExW(
+            WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED,
+            wc.lpszClassName,
+            L"UCheat Overlay",
+            WS_POPUP,
+            0, 0,
+            width, height,
+            nullptr,
+            nullptr,
+            wc.hInstance,
+            nullptr
+        );
+
+        if (!window)
+        {
+            std::cerr << "Failed to create window." << std::endl;
+            exit(1);
+        }
+
+        SetLayeredWindowAttributes(window, RGB(0, 0, 0), BYTE(255), LWA_ALPHA);
+
+        {
+            RECT clientArea{};
+            if (!GetClientRect(window, &clientArea))
+            {
+                std::cerr << "Failed to get client area." << std::endl;
+                exit(1);
+            }
+
+            RECT windowArea{};
+            if (!GetWindowRect(window, &windowArea))
+            {
+                std::cerr << "Failed to get window rect." << std::endl;
+                exit(1);
+            }
+
+            POINT diff{};
+            if (!ClientToScreen(window, &diff))
+            {
+                std::cerr << "Failed to convert client to screen." << std::endl;
+                exit(1);
+            }
+
+            const MARGINS margins{
+                windowArea.left + (diff.x - windowArea.left),
+                windowArea.top + (diff.y - windowArea.top),
+                clientArea.right,
+                clientArea.bottom
+            };
+
+            if (FAILED(DwmExtendFrameIntoClientArea(window, &margins)))
+            {
+                std::cerr << "Failed to extend frame into client area." << std::endl;
+                exit(1);
+            }
+        }
+
+        ShowWindow(window, nCmdShow);
+        UpdateWindow(window);
+    }
+
+    void InitializeDirectX()
+    {
+        DXGI_SWAP_CHAIN_DESC sd{};
+        sd.BufferDesc.RefreshRate.Numerator = 60U;
+        sd.BufferDesc.RefreshRate.Denominator = 1U;
+        sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.SampleDesc.Count = 1U;
+        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.BufferCount = 1U;
+        sd.OutputWindow = window;
+        sd.Windowed = TRUE;
+        sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+        sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+        constexpr D3D_FEATURE_LEVEL levels[2]{
+            D3D_FEATURE_LEVEL_11_0,
+            D3D_FEATURE_LEVEL_10_0,
+        };
+
+        if (FAILED(D3D11CreateDeviceAndSwapChain(
+            nullptr,
+            D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+            0U,
+            levels,
+            2U,
+            D3D11_SDK_VERSION,
+            &sd,
+            &swapChain,
+            &device,
+            nullptr,
+            &deviceContext)))
+        {
+            std::cerr << "Failed to create device and swap chain." << std::endl;
+            exit(1);
+        }
+
+        ID3D11Texture2D* backBuffer{ nullptr };
+        if (FAILED(swapChain->GetBuffer(0U, IID_PPV_ARGS(&backBuffer))))
+        {
+            std::cerr << "Failed to get swap chain buffer." << std::endl;
+            exit(1);
+        }
+
+        if (backBuffer)
+        {
+            if (FAILED(device->CreateRenderTargetView(backBuffer, nullptr, &renderTargetView)))
+            {
+                std::cerr << "Failed to create render target view." << std::endl;
+                exit(1);
+            }
+            backBuffer->Release();
+        }
+        else
+        {
+            std::cerr << "Failed to get back buffer." << std::endl;
+            exit(1);
         }
     }
 
-    // admin stuff
-    auto owner = local_player->getChannel()->getOwner();
-    owner->setAdmin(1);
-    if (owner->isAdmin())
-        log("Use keys Shift + F1 & F7 for freecam & esp");
-
-    // gun mods
-    auto equipment = local_player->getEquipment();
-    auto useable = (SDG::UseableGun*)equipment->getUseable();
-    auto gun = (SDG::ItemGunAsset*)equipment->getAsset();
-
-    if (gun && useable)
+    void InitializeImGui()
     {
-        log("Current Weapon: %s (%i)", gun->getName()->toString().c_str(), gun->getId());
-        log("Current Ammo: %d", useable->getAmmo());
-        useable->setAmmo(100);
-        log("Set current weapon ammo to 100");
-        gun->setRecoilMaxX(0);
-        gun->setRecoilMaxY(0);
-        gun->setRecoilMinX(0);
-        gun->setRecoilMinY(0);
-        gun->setBaseSpreadAngle(0);
-        log("Set current weapon recoil and spread to 0");
-    }
-    else
-    {
-        log("Couldn't find current weapon");
+        if (!ImGui::CreateContext())
+        {
+            std::cerr << "Failed to create ImGui context." << std::endl;
+            exit(1);
+        }
+        ImGui::StyleColorsDark();
+
+        if (!ImGui_ImplWin32_Init(window))
+        {
+            std::cerr << "Failed to initialize ImGui Win32." << std::endl;
+            exit(1);
+        }
+        if (!ImGui_ImplDX11_Init(device, deviceContext))
+        {
+            std::cerr << "Failed to initialize ImGui DX11." << std::endl;
+            exit(1);
+        }
     }
 
-    system("pause");
+    void RenderLoop()
+    {
+        MSG msg;
+        bool running = true;
+        while (true)
+        {
+            while (PeekMessageW(&msg, nullptr, 0U, 0U, PM_REMOVE))
+            {
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+
+                if (msg.message == WM_QUIT)
+                    running = false;
+            }
+
+            if (!running) break;
+
+            ImGui_ImplDX11_NewFrame();
+            ImGui_ImplWin32_NewFrame();
+            ImGui::NewFrame();
+
+            // Draw your stuff here
+            drawLoop();
+
+            ImGui::Render();
+
+            constexpr FLOAT clearColor[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
+            deviceContext->OMSetRenderTargets(1U, &renderTargetView, nullptr);
+            deviceContext->ClearRenderTargetView(renderTargetView, clearColor);
+
+            ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+            if (FAILED(swapChain->Present(1U, 0U)))
+            {
+                std::cerr << "Failed to present swap chain." << std::endl;
+                exit(1);
+            }
+        }
+    }
+
+    void Cleanup()
+    {
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+
+        if (swapChain)        swapChain->Release();
+        if (deviceContext)    deviceContext->Release();
+        if (device)           device->Release();
+        if (renderTargetView) renderTargetView->Release();
+
+        DestroyWindow(window);
+        UnregisterClassW(L"UCheatOverlay", hInstance);
+    }
+
+    void Run(HINSTANCE hInstance, INT nCmdShow, void (*drawLoop)())
+    {
+        Overlay::hInstance = hInstance;
+        Overlay::nCmdShow = nCmdShow;
+        Overlay::drawLoop = drawLoop;
+
+        InitializeWindow();
+        InitializeDirectX();
+        InitializeImGui();
+
+        RenderLoop();
+        Cleanup();
+    }
+}
+
+void drawLoop()
+{
+    ImGui::GetBackgroundDrawList()->AddRectFilled({ 500, 500 }, { 100, 100 }, IM_COL32(255, 255, 0, 255));
+}
+
+INT APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, PSTR, INT nCmdShow)
+{
+    Overlay::Run(hInstance, nCmdShow, drawLoop);
+    return 0;
 }
