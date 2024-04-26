@@ -18,7 +18,7 @@ namespace SDG
 	class ZombieManager;
 	class ZombieRegion;
 	class Zombie;
-	
+
 	class Asset;
 	class ItemGunAsset;
 	class Useable;
@@ -44,7 +44,7 @@ namespace SDG
 	public:
 		GETTER_DEF(Player*, Player, Offsets::SteamPlayer::_player);
 		GETTER_DEF(float, Joined, Offsets::SteamPlayer::_joined)
-		GETTER_SETTER_BOOL_DEF(Admin, Offsets::SteamPlayer::_isAdmin);
+			GETTER_SETTER_BOOL_DEF(Admin, Offsets::SteamPlayer::_isAdmin);
 		GETTER_DEF(SteamPlayerID*, Info, Offsets::SteamPlayer::_playerID);
 	};
 
@@ -107,24 +107,20 @@ namespace SDG
 
 	class Zombie
 	{
-	private:
-		GETTER_DEF(uintptr_t, EyesPtr, Offsets::Zombie::eyes);
 	public:
 		GETTER_DEF(uint16_t, Id, Offsets::Zombie::id);
 		GETTER_SETTER_DEF(uint16_t, Health, Offsets::Zombie::health);
 		GETTER_SETTER_DEF(uint16_t, MaxHealth, Offsets::Zombie::maxHealth);
 		GETTER_SETTER_BOOL_DEF(Dead, Offsets::Zombie::isDead);
 		GAMEOBJECT_DEF();
-
-		Unity::Transform getEyes() { return Unity::Transform(getEyesPtr()); }
 	};
 
-    class Asset
-    {
-    public:
+	class Asset
+	{
+	public:
 		GETTER_DEF(uint16_t, Id, Offsets::Asset::id);
 		GETTER_SETTER_DEF(Unity::String*, Name, Offsets::Asset::name);
-    };
+	};
 
 	class ItemGunAsset : public Asset
 	{
@@ -145,6 +141,24 @@ namespace SDG
 	{
 	public:
 		GETTER_SETTER_DEF(cs_byte, Ammo, Offsets::UseableGun::ammo);
+	};
+
+	class MainCamera
+	{
+	private:
+		INSTANCE_DEF(Classes::MainCamera);
+	public:
+		STATIC_GETTER_DEF(Unity::Camera*, Instance, Offsets::MainCamera::_instance);
+	};
+
+	class OptionsSettings
+	{
+	private:
+		INSTANCE_DEF(Classes::OptionsSettings);
+	public:
+		static float getFov() {
+			return 60 + Memory::read<float>(instance() + Offsets::OptionsSettings::_fov) * 40;
+		};
 	};
 }
 

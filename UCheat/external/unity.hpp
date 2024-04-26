@@ -7,11 +7,6 @@
 
 namespace Unity
 {
-	class Transform;
-	class GameObject;
-	class Vector3;
-	class String;
-
 	class String
 	{
 	public:
@@ -80,15 +75,86 @@ namespace Unity
 
 		vector<T> toVector()
 		{
-			uint32_t address = THISPTR + 0x20;
 			uint32_t len = length();
-			
 			auto buffer = make_unique<T[]>(len);
-			Memory::readBuffer(address, buffer.get(), len * sizeof(T));
+			Memory::readBuffer(THISPTR + 0x20, buffer.get(), len * sizeof(T));
 
 			vector<T> vec(len);
 			memcpy(vec.data(), buffer.get(), len * sizeof(T));
 			return vec;
+		}
+	};
+
+	class Vector2
+	{
+	public:
+		float x, y;
+
+		Vector2() : x(0), y(0) {}
+		Vector2(float x, float y) : x(x), y(y) {}
+
+		inline bool operator==(const Vector2& other) const { return x == other.x && y == other.y; }
+		inline bool operator!=(const Vector2& other) const { return x != other.x || y != other.y; }
+		inline Vector2 operator+(const Vector2& other) const { return Vector2(x + other.x, y + other.y); }
+		inline Vector2 operator-(const Vector2& other) const { return Vector2(x - other.x, y - other.y); }
+		inline Vector2 operator*(const Vector2& other) const { return Vector2(x * other.x, y * other.y); }
+		inline Vector2 operator/(const Vector2& other) const { return Vector2(x / other.x, y / other.y); }
+		inline Vector2 operator*(float scalar) const { return Vector2(x * scalar, y * scalar); }
+		inline Vector2 operator/(float scalar) const { return Vector2(x / scalar, y / scalar); }
+		inline Vector2 operator-() const { return Vector2(-x, -y); }
+
+		inline Vector2& operator+=(const Vector2& other)
+		{
+			x += other.x;
+			y += other.y;
+			return *this;
+		}
+
+		inline Vector2& operator-=(const Vector2& other)
+		{
+			x -= other.x;
+			y -= other.y;
+			return *this;
+		}
+
+		inline Vector2& operator*=(float scalar)
+		{
+			x *= scalar;
+			y *= scalar;
+			return *this;
+		}
+
+		inline Vector2& operator/=(float scalar)
+		{
+			x /= scalar;
+			y /= scalar;
+			return *this;
+		}
+
+		inline float dot(const Vector2& other) const
+		{
+			return x * other.x + y * other.y;
+		}
+
+		inline float distance(const Vector2& other) const
+		{
+			return sqrtf(powf(x - other.x, 2) + powf(y - other.y, 2));
+		}
+
+		inline float length() const
+		{
+			return sqrtf(x * x + y * y);
+		}
+
+		Vector2 normalized() const
+		{
+			float len = length();
+			return Vector2(x / len, y / len);
+		}
+
+		string toString() const
+		{
+			return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 		}
 	};
 
@@ -217,6 +283,11 @@ namespace Unity
 		}
 
 		inline Quaternion conjugate() const { return Quaternion(-x, -y, -z, w); }
+
+		inline string toString() const
+		{
+			return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w) + ")";
+		}
 	};
 
 	class Transform
@@ -356,9 +427,7 @@ namespace Unity
 			while (index >= 0)
 			{
 				auto parent = trsBuffer[index];
-
 				worldRot = parent.q * worldRot;
-
 				index = parentIndicesBuffer[index];
 			}
 
@@ -456,6 +525,55 @@ namespace Unity
 		{
 			auto components = Memory::read<uintptr_t>(THISPTR + 0x30);
 			return Transform(Memory::read<uintptr_t>(components + 0x8));
+		}
+	};
+
+	class Camera
+	{
+	private:
+		static Vector3 worldToLocal(Vector3 camPos, Quaternion camRot, Vector3 worldPos)
+		{
+			return camRot.conjugate() * (worldPos - camPos);
+		}
+
+		static Vector3 project(Vector3 worldPos, float fov, float aspect)
+		{
+			float f = 1.0f / tanf(fov * 0.5f);
+			f /= worldPos.z;
+			worldPos.x *= f / aspect;
+			worldPos.y *= f;
+			return worldPos;
+		}
+
+		static Vector3 clipSpaceToViewport(Vector3 worldPos)
+		{
+			worldPos.x = worldPos.x * 0.5 + 0.5;
+			worldPos.y = worldPos.y * 0.5 + 0.5;
+			return worldPos;
+		}
+
+		static Vector3 worldToViewport(Vector3 camPos, Quaternion camRot, float fov, float aspect, Vector3 worldPos)
+		{
+			Vector3 localPos = worldToLocal(camPos, camRot, worldPos);
+			Vector3 projected = project(localPos, fov, aspect);
+			return clipSpaceToViewport(projected);
+		}
+
+		static Vector3 worldToScreenPos(Vector3 camPos, Quaternion camRot, float fov, float width, float height, Vector3 worldPos)
+		{
+			Vector3 pos = worldToViewport(camPos, camRot, fov, width / (float)height, worldPos);
+			pos.x *= width;
+			pos.y *= height;
+			return pos;
+		}
+	public:
+		GAMEOBJECT_DEF();
+
+		static Vector3 worldToScreen(Vector3 camPos, Quaternion camRot, float fov, int width, int height, Vector3 worldPos)
+		{
+			Vector3 screenPos = worldToScreenPos(camPos, camRot, fov, width, height, worldPos);
+			screenPos.y = height - screenPos.y;
+			return screenPos;
 		}
 	};
 }

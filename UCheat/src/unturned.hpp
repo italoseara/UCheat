@@ -1,7 +1,11 @@
+// Credits: https://github.com/Coopyy/Unturned-External-Base
+
 #ifndef UNTURNED_HPP
 #define UNTURNED_HPP
 
 #include "mono.hpp"
+
+#define PI 3.14159265358979323846f
 
 #define GETTER_DEF(returnType, fieldName, offset)          \
 	returnType get##fieldName()                            \
@@ -93,25 +97,39 @@ namespace Classes
 	MonoClass* Useable;
 	MonoClass* UseableGun;
 
+	MonoClass* MainCamera;
+
+	MonoClass* OptionsSettings;
+
 	void init()
 	{
-		Provider      = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Provider");
-		SteamChannel  = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamChannel");
-		SteamPlayer   = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
+		// Steam
+		Provider = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Provider");
+		SteamChannel = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamChannel");
+		SteamPlayer = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamPlayer");
 		SteamPlayerID = Mono::findClass("Assembly-CSharp", "SDG.Unturned.SteamPlayerID");
 
-		Player          = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Player");
-		PlayerLife      = Mono::findClass("Assembly-CSharp", "SDG.Unturned.PlayerLife");
+		// Player
+		Player = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Player");
+		PlayerLife = Mono::findClass("Assembly-CSharp", "SDG.Unturned.PlayerLife");
 		PlayerEquipment = Mono::findClass("Assembly-CSharp", "SDG.Unturned.PlayerEquipment");
 
+		// Zombie
 		ZombieManager = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ZombieManager");
-		ZombieRegion  = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ZombieRegion");
-		Zombie        = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Zombie");
+		ZombieRegion = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ZombieRegion");
+		Zombie = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Zombie");
 
-		Asset           = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Asset");
-		ItemGunAsset    = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
-		Useable         = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Useable");
-		UseableGun      = Mono::findClass("Assembly-CSharp", "SDG.Unturned.UseableGun");
+		// Assets
+		Asset = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Asset");
+		ItemGunAsset = Mono::findClass("Assembly-CSharp", "SDG.Unturned.ItemGunAsset");
+		Useable = Mono::findClass("Assembly-CSharp", "SDG.Unturned.Useable");
+		UseableGun = Mono::findClass("Assembly-CSharp", "SDG.Unturned.UseableGun");
+
+		// Camera
+		MainCamera = Mono::findClass("Assembly-CSharp", "SDG.Unturned.MainCamera");
+
+		// Options
+		OptionsSettings = Mono::findClass("Assembly-CSharp", "SDG.Unturned.OptionsSettings");
 	}
 }
 
@@ -189,7 +207,6 @@ namespace Offsets
 		uintptr_t health;
 		uintptr_t maxHealth;
 		uintptr_t isDead;
-		uintptr_t eyes;
 	}
 
 	namespace Asset
@@ -213,63 +230,76 @@ namespace Offsets
 		uintptr_t ammo;
 	}
 
+	namespace MainCamera
+	{
+		uintptr_t _instance;
+	}
+
+	namespace OptionsSettings
+	{
+		uintptr_t _fov;
+	}
+
 	void init()
-	{	
+	{
 		Provider::_isConnected = GET_OFFSET(Classes::Provider, "_isConnected");
 		Provider::isLoadingUGC = GET_OFFSET(Classes::Provider, "isLoadingUGC");
-		Provider::_clients     = GET_OFFSET(Classes::Provider, "_clients");
+		Provider::_clients = GET_OFFSET(Classes::Provider, "_clients");
 
 		SteamChannel::owner = GET_OFFSET(Classes::SteamChannel, "owner");
 
-		SteamPlayer::_isAdmin  = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
-		SteamPlayer::_joined   = GET_OFFSET(Classes::SteamPlayer, "_joined");
-		SteamPlayer::_player   = GET_OFFSET(Classes::SteamPlayer, "_player");
+		SteamPlayer::_isAdmin = GET_OFFSET(Classes::SteamPlayer, "_isAdmin");
+		SteamPlayer::_joined = GET_OFFSET(Classes::SteamPlayer, "_joined");
+		SteamPlayer::_player = GET_OFFSET(Classes::SteamPlayer, "_player");
 		SteamPlayer::_playerID = GET_OFFSET(Classes::SteamPlayer, "_playerID");
 
-		SteamPlayerID::_playerName    = GET_OFFSET(Classes::SteamPlayerID, "_playerName");
+		SteamPlayerID::_playerName = GET_OFFSET(Classes::SteamPlayerID, "_playerName");
 		SteamPlayerID::_characterName = GET_OFFSET(Classes::SteamPlayerID, "_characterName");
-		SteamPlayerID::_nickName      = GET_OFFSET(Classes::SteamPlayerID, "_nickName");
-		SteamPlayerID::_steamID       = GET_OFFSET(Classes::SteamPlayerID, "_steamID");
+		SteamPlayerID::_nickName = GET_OFFSET(Classes::SteamPlayerID, "_nickName");
+		SteamPlayerID::_steamID = GET_OFFSET(Classes::SteamPlayerID, "_steamID");
 
-		Player::_player    = GET_OFFSET(Classes::Player, "_player");
-		Player::_channel   = GET_OFFSET(Classes::Player, "_channel");
+		Player::_player = GET_OFFSET(Classes::Player, "_player");
+		Player::_channel = GET_OFFSET(Classes::Player, "_channel");
 		Player::_equipment = GET_OFFSET(Classes::Player, "_equipment");
-		Player::_life      = GET_OFFSET(Classes::Player, "_life");
+		Player::_life = GET_OFFSET(Classes::Player, "_life");
 
-		PlayerLife::_isDead     = GET_OFFSET(Classes::PlayerLife, "_isDead");
+		PlayerLife::_isDead = GET_OFFSET(Classes::PlayerLife, "_isDead");
 		PlayerLife::_isBleeding = GET_OFFSET(Classes::PlayerLife, "_isBleeding");
-		PlayerLife::_isBroken   = GET_OFFSET(Classes::PlayerLife, "_isBroken");
-		PlayerLife::_health      = GET_OFFSET(Classes::PlayerLife, "_health");
-		PlayerLife::_food        = GET_OFFSET(Classes::PlayerLife, "_food");
-		PlayerLife::_water       = GET_OFFSET(Classes::PlayerLife, "_water");
-		PlayerLife::_virus       = GET_OFFSET(Classes::PlayerLife, "_virus");
-		PlayerLife::_stamina     = GET_OFFSET(Classes::PlayerLife, "_stamina");
-		PlayerLife::_oxygen      = GET_OFFSET(Classes::PlayerLife, "_oxygen");
+		PlayerLife::_isBroken = GET_OFFSET(Classes::PlayerLife, "_isBroken");
+		PlayerLife::_health = GET_OFFSET(Classes::PlayerLife, "_health");
+		PlayerLife::_food = GET_OFFSET(Classes::PlayerLife, "_food");
+		PlayerLife::_water = GET_OFFSET(Classes::PlayerLife, "_water");
+		PlayerLife::_virus = GET_OFFSET(Classes::PlayerLife, "_virus");
+		PlayerLife::_stamina = GET_OFFSET(Classes::PlayerLife, "_stamina");
+		PlayerLife::_oxygen = GET_OFFSET(Classes::PlayerLife, "_oxygen");
 
-		PlayerEquipment::_asset   = GET_OFFSET(Classes::PlayerEquipment, "_asset");
+		PlayerEquipment::_asset = GET_OFFSET(Classes::PlayerEquipment, "_asset");
 		PlayerEquipment::_useable = GET_OFFSET(Classes::PlayerEquipment, "_useable");
 
 		ZombieManager::_tickingZombies = GET_OFFSET(Classes::ZombieManager, "_tickingZombies");
-		ZombieManager::_regions        = GET_OFFSET(Classes::ZombieManager, "_regions");
+		ZombieManager::_regions = GET_OFFSET(Classes::ZombieManager, "_regions");
 
 		ZombieRegion::_zombies = GET_OFFSET(Classes::ZombieRegion, "_zombies");
 
-		Zombie::id        = GET_OFFSET(Classes::Zombie, "id");
-		Zombie::health    = GET_OFFSET(Classes::Zombie, "health");
+		Zombie::id = GET_OFFSET(Classes::Zombie, "id");
+		Zombie::health = GET_OFFSET(Classes::Zombie, "health");
 		Zombie::maxHealth = GET_OFFSET(Classes::Zombie, "maxHealth");
-		Zombie::isDead    = GET_OFFSET(Classes::Zombie, "isDead");
-		Zombie::eyes      = GET_OFFSET(Classes::Zombie, "eyes");
+		Zombie::isDead = GET_OFFSET(Classes::Zombie, "isDead");
 
-		Asset::id   = GET_OFFSET(Classes::Asset, "id");
+		Asset::id = GET_OFFSET(Classes::Asset, "id");
 		Asset::name = GET_OFFSET(Classes::Asset, "name");
 
-		ItemGunAsset::recoilMin_x            = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_x");
-		ItemGunAsset::recoilMax_x            = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_x");
-		ItemGunAsset::recoilMin_y            = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_y");
-		ItemGunAsset::recoilMax_y            = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_y");
+		ItemGunAsset::recoilMin_x = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_x");
+		ItemGunAsset::recoilMax_x = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_x");
+		ItemGunAsset::recoilMin_y = GET_OFFSET(Classes::ItemGunAsset, "recoilMin_y");
+		ItemGunAsset::recoilMax_y = GET_OFFSET(Classes::ItemGunAsset, "recoilMax_y");
 		ItemGunAsset::baseSpreadAngleRadians = GET_OFFSET(Classes::ItemGunAsset, "<baseSpreadAngleRadians>k__BackingField");
 
 		UseableGun::ammo = GET_OFFSET(Classes::UseableGun, "ammo");
+
+		MainCamera::_instance = GET_OFFSET(Classes::MainCamera, "_instance");
+
+		OptionsSettings::_fov = GET_OFFSET(Classes::OptionsSettings, "_fov");
 	}
 }
 

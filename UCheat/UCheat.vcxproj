@@ -153,7 +153,7 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="external\game.hpp" />
+    <ClInclude Include="src\game.hpp" />
     <ClInclude Include="external\imgui\imconfig.h" />
     <ClInclude Include="external\imgui\imgui.h" />
     <ClInclude Include="external\imgui\imgui_impl_dx11.h" />
@@ -166,7 +166,8 @@
     <ClInclude Include="external\memory.hpp" />
     <ClInclude Include="external\mono.hpp" />
     <ClInclude Include="external\unity.hpp" />
-    <ClInclude Include="external\unturned.hpp" />
+    <ClInclude Include="src\overlay.hpp" />
+    <ClInclude Include="src\unturned.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

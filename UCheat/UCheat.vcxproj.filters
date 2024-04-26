@@ -50,13 +50,13 @@
     <ClInclude Include="external\mono.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\unturned.hpp">
+    <ClInclude Include="src\unturned.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="external\unity.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="external\game.hpp">
+    <ClInclude Include="src\game.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="external\imgui\imconfig.h">
@@ -81,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="external\imgui\imstb_truetype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\overlay.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
